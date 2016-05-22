@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Google Login JavaScript</title>
+  <meta name="google-signin-client_id" content="342876179484-j1svlvjorpa0bptu960gj208psn9r71t.apps.googleusercontent.com">
+  <link rel="stylesheet" href="css/main.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+  <script src="js/client.js"></script>
+  <script src="https://apis.google.com/js/platform.js?onload=appStart" async defer></script>
+</head>
+
+<body ng-app="tc" ng-controller="tcc">
+  
+  <div id="main">
+
+    <div id="nav">
+      <div id="signin" class="g-signin2"></div>
+      <button id="signout" ng-click="signOut()">Signout</button>
+      <button id="disconnect" ng-click="disconnect()">Disconnect</button>      
+    </div>
+    
+    <div id="user-details">
+      <table>
+        <tr>
+          <td><img ng-show="user.photo" ng-src="{{ user.photo }}"></td>
+          <td>&nbsp;</td>
+        </tr>
+        <tr>
+          <td>Photo URL: </td>
+          <td>{{ user.photo }}</td>
+        </tr>
+        <tr>
+          <td>User ID: </td>
+          <td>{{ user.id }}</td>
+        </tr>
+        <tr>
+          <td>Full Name: </td>
+          <td>{{ user.fullName }}</td>
+        </tr>
+        <tr>
+          <td>First Name: </td>
+          <td>{{ user.firstName }}</td>
+        </tr>
+        <tr>
+          <td>Last Name: </td>
+          <td>{{ user.lastName }}</td>
+        </tr>
+        <tr>
+          <td>Email: </td>
+          <td>{{ user.email }}</td>
+        </tr>
+        <tr>
+          <td>Domain: </td>
+          <td>{{ user.domain }}</td>
+        </tr>
+        <tr>
+          <td>Timestamp: </td>
+          <td>{{ user.timestamp }}</td>
+        </tr>
+        <tr>
+          <td>ID Token: </td>
+          <td>{{ user.idToken }}</td>
+        </tr>
+        <tr>
+          <td>Expires At: </td>
+          <td>{{ user.expiresAt }}</td>
+        </tr>
+      </table>      
+    </div>
+    
+  </div>
+
+</body>
+
+</html>

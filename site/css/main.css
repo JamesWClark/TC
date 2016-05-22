@@ -1,0 +1,35 @@
+html {
+  font-family: verdana;
+  font-size: 16px;
+}
+
+body {
+  padding: 40px;
+}
+
+table {
+  word-wrap: break-word;
+  table-layout:fixed;
+  width: 100%;
+}
+
+tr td:first-child {
+  font-weight: bold;
+  width: 150px;
+}
+
+td {
+  vertical-align: top;
+  padding-right: 20px;
+  padding-bottom: 14px;
+}
+
+#main {
+  max-width: 800px;
+  margin: auto;
+}
+
+#user-details {
+  margin-top: 40px;
+  max-width: 800px;
+}
