@@ -4,7 +4,7 @@
 
 var app = angular.module('tc',[]);
 
-app.controller('tcc', function($scope, $window) {
+app.controller('tcc', function($scope, $window, $http) {
     
     var auth2;
     
@@ -28,24 +28,27 @@ app.controller('tcc', function($scope, $window) {
 
     var signinChanged = function(isSignedIn) {
         console.log('signinChanged() = ' + isSignedIn);
+        
         if(isSignedIn) {
-            console.log('the user must be signed in to print this');
+            console.log('if this is printing, the user is signed in');
             var googleUser = auth2.currentUser.get();
             var authResponse = googleUser.getAuthResponse();
             var profile = googleUser.getBasicProfile();
-            $scope.user.id          = profile.getId();
+            $scope.user.userid      = profile.getId();
             $scope.user.fullName    = profile.getName();
             $scope.user.firstName   = profile.getGivenName();
             $scope.user.lastName    = profile.getFamilyName();
             $scope.user.photo       = profile.getImageUrl();
             $scope.user.email       = profile.getEmail();
             $scope.user.domain      = googleUser.getHostedDomain();
-            $scope.user.timestamp   = moment().format('x');
             $scope.user.idToken     = authResponse.id_token;
             $scope.user.expiresAt   = authResponse.expires_at;
             $scope.$digest();
+            
+            _post('/signin', $scope.user);
+            
         } else {
-            console.log('the user must not be signed in if this is printing');
+            console.log('if this is printing, the user is not signed in');
             $scope.user = {};
             $scope.$digest();
         }
@@ -65,6 +68,20 @@ app.controller('tcc', function($scope, $window) {
         console.log('disconnect()');
         auth2.disconnect();
         console.log(auth2);
+    };
+    
+    var _post = function(url, data) {
+        $http.post(url, data).then(
+        function onSuccess(response) {
+            if(response.status === 201) {
+                console.log('successfully created document');
+            } else {
+                console.log('expected 201, got ' + response.status + ' instead');
+            }
+        }, 
+        function onError(response) {
+            console.log('error = ' + JSON.stringify(response));
+        });
     };
 });
 
