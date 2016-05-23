@@ -64,16 +64,6 @@ var allowCrossDomain = function(req, res, next) {
     next();
 };
 
-var validateRequest = function(req, res, next) {
-    if(!req.secure) {
-        res.status(403).send('http not permitted. use https instead.');
-    } else {
-        log('valid ok');
-    }
-    next();
-};
-
-api.use(validateRequest);
 api.use(allowCrossDomain);
 
 api.use(bodyParser.json());
