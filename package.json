@@ -4,6 +4,7 @@
   "dependencies": {
     "body-parser": "^1.15.1",
     "express": "^4.13.4",
+    "helmet": "^2.1.0",
     "moment": "^2.13.0",
     "mongodb": "^2.1.18",
     "vhost": "^3.0.2"
