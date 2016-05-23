@@ -45,7 +45,7 @@ app.controller('tcc', function($scope, $window, $http) {
             $scope.user.expiresAt   = authResponse.expires_at;
             $scope.$digest();
             
-            _post('/signin', $scope.user);
+            _post('https://sub.local.info/signin', $scope.user);
             
         } else {
             console.log('if this is printing, the user is not signed in');

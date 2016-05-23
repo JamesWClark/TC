@@ -8,19 +8,15 @@ var http = require('http');
 var https = require('https');
 var vhost = require('vhost');
 var express = require('express');
-var bodyParser = require('body-parser');
+
 var app = express();
 
-var assert = require('assert');
-var moment = require('moment');
-var Mongo = require('mongodb').MongoClient;
+
 
 var credentials = {
     key: fs.readFileSync('bin/dev-key.pem'),
     cert: fs.readFileSync('bin/dev-cert.pem')
 };
-
-var dburl = 'mongodb://localhost:27017/teachcode';
 
 var log = function(msg, obj) {
     if(obj) {
@@ -47,66 +43,9 @@ var log = function(msg, obj) {
     }
 };
 
-Mongo.connect(dburl, function(err, db) {
-    if(err) {
-        log('error = ', err);
-    } else {
-        log('connected to mongodb');
-        Mongo.ops = {};
-        Mongo.ops.insertJson = function(collection, json) {
-            var col = db.collection(collection);
-            col.insert(json, function(err, result) {
-                if(err) {
-                    log('error = ', err);
-                } else {
-                    log('insert into ' + collection + ': ', json);
-                }
-            });
-        };
-    }
-});
-
-var validateRequest = function(req, res, next) {
-    if(!req.secure) {
-        res.status(403).send('http not permitted. use https instead.');
-    } else {
-        log('valid ok');
-    }
-    next();
-};
-
-app.use(validateRequest);
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
 app.use('/', express.static(__dirname + '/site'));
 
 app.use(vhost('sub.local.info', require('./api.js').app));
-
-app.use('/user/:id',
-        
-    function(req, res, next) {
-      console.log('Request URL:', req.originalUrl);
-      next();
-    }, 
-        
-    function (req, res, next) {
-      console.log('Request Type:', req.method);
-      next();
-    }
-);
-
-app.post('/signin', function(req, res) {
-    log('post: /signin = ', data);
-    
-    var data = req.body;
-    data.timestamp = moment().format('x');
-    data.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    
-    Mongo.ops.insertJson('logins', data);
-    res.status(201).send('');
-});
 
 https.createServer(credentials, app).listen(443);
 
