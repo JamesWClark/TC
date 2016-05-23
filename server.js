@@ -11,7 +11,7 @@ var express = require('express');
 
 var app = express();
 
-
+var API_DOMAIN = 'sub.local.info';
 
 var credentials = {
     key: fs.readFileSync('bin/dev-key.pem'),
@@ -45,7 +45,7 @@ var log = function(msg, obj) {
 
 app.use('/', express.static(__dirname + '/site'));
 
-app.use(vhost('sub.local.info', require('./api.js').app));
+app.use(vhost(API_DOMAIN, require('./api.js').app));
 
 https.createServer(credentials, app).listen(443);
 
