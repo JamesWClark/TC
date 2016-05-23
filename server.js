@@ -1,6 +1,12 @@
+/*
+ * http://expressjs.com/en/guide/using-middleware.html
+ * http://expressjs.com/en/advanced/best-practice-security.html
+ */
+
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
+var vhost = require('vhost');
 var express = require('express');
 var bodyParser = require('body-parser');
 var app = express();
@@ -60,9 +66,36 @@ Mongo.connect(dburl, function(err, db) {
     }
 });
 
+var validateRequest = function(req, res, next) {
+    if(!req.secure) {
+        res.status(403).send('http not permitted. use https instead.');
+    } else {
+        log('valid ok');
+    }
+    next();
+};
+
+app.use(validateRequest);
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+
 app.use('/', express.static(__dirname + '/site'));
+
+app.use(vhost('sub.local.info', require('./api.js').app));
+
+app.use('/user/:id',
+        
+    function(req, res, next) {
+      console.log('Request URL:', req.originalUrl);
+      next();
+    }, 
+        
+    function (req, res, next) {
+      console.log('Request Type:', req.method);
+      next();
+    }
+);
 
 app.post('/signin', function(req, res) {
     log('post: /signin = ', data);
@@ -78,6 +111,7 @@ app.post('/signin', function(req, res) {
 https.createServer(credentials, app).listen(443);
 
 http.createServer(function(req, res) {
+    log('http redirect to https');
 	res.writeHead(301, {'Location':'https://' + req.headers['host'] + req.url });
 	res.end();
 }).listen(80);
