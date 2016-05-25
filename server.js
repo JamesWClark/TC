@@ -68,7 +68,9 @@ Mongo.connect(mongo_url, function(err, db) {
         log('error = ', err);
     } else {
         log('connected to mongodb');
+        
         Mongo.ops = {};
+        
         Mongo.ops.insertJson = function(collection, json) {
             var col = db.collection(collection);
             col.insert(json, function(err, result) {
@@ -80,13 +82,17 @@ Mongo.connect(mongo_url, function(err, db) {
             });
         };
         
-        Mongo.ops.updateOrCreate = function(collection, json, key) {
+        Mongo.ops.upsert = function(collection, query, json) {
             var col = db.collection(collection);
-            col.updateOne(
-                key
-                , { $set : { firstName : 'hahahahaha' } }
+            col.updateOne(query
+                , { $set : json }
+                , { upsert : true }
                 , function (err, result) {
-                    console.log('updated the document');
+                    if(err) {
+                        log('error = ', err);
+                    } else {
+                        log('upsert success = ', result);
+                    }
                 }
             );
         };
@@ -128,7 +134,7 @@ app.post('/signin', function(req, res) {
     };
     
     Mongo.ops.insertJson('logins', login);
-    Mongo.ops.updateOrCreate('users', user, { userid : user.userid });
+    Mongo.ops.upsert('users', { 'userid' : user.userid }, user);
     
     res.status(201).send('');
 });
