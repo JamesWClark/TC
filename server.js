@@ -10,22 +10,24 @@ var DOMAIN = 'local.info';
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
-var vhost = require('vhost');
+var Mongo = require('mongodb').MongoClient;
 var helmet = require('helmet');
+var moment = require('moment');
 var express = require('express');
 var bodyParser = require('body-parser');
 
 var app = express();
 
-var moment = require('moment');
-var Mongo = require('mongodb').MongoClient;
-
-var dburl = 'mongodb://localhost:27017/teachcode';
-
 var credentials = {
     key: fs.readFileSync('bin/key.pem'),
     cert: fs.readFileSync('bin/cert.pem')
 };
+
+var mongo_url = 'mongodb://localhost:27017/teachcode';
+
+var superadmins = ['jwclark@rockhursths.edu'];
+var domains = ['rockhursths.edu','amdg.rockhursths.edu'];
+var tokenSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 var log = function(msg, obj) {
     if(obj) {
@@ -52,7 +54,16 @@ var log = function(msg, obj) {
     }
 };
 
-Mongo.connect(dburl, function(err, db) {
+var generateJoinToken = function(length) {
+    var token = '';
+    for(var i = 0; i < length; i++) {
+        var random = Math.floor(Math.random() * tokenSet.length);
+        token += tokenSet[random];
+    }
+    return token;
+};
+
+Mongo.connect(mongo_url, function(err, db) {
     if(err) {
         log('error = ', err);
     } else {
@@ -98,11 +109,16 @@ app.use('/user/:id',
 );
 
 app.post('/signin', function(req, res) {
-    var data = req.body;
-    data.timestamp = moment().format('x');
-    data.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    var user = req.body;
+    var login = {
+        userid : user.userid,
+        ip : req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+        timestamp : moment().format('x')
+    };
     
-    Mongo.ops.insertJson('logins', data);
+    Mongo.ops.insertJson('logins', login);
+    Mongo.ops.updateOrCreate('users', user);
+    
     res.status(201).send('');
 });
 
