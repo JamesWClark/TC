@@ -79,6 +79,17 @@ Mongo.connect(mongo_url, function(err, db) {
                 }
             });
         };
+        
+        Mongo.ops.updateOrCreate = function(collection, json, key) {
+            var col = db.collection(collection);
+            col.updateOne(
+                key
+                , { $set : { firstName : 'hahahahaha' } }
+                , function (err, result) {
+                    console.log('updated the document');
+                }
+            );
+        };
     }
 });
 
@@ -117,13 +128,14 @@ app.post('/signin', function(req, res) {
     };
     
     Mongo.ops.insertJson('logins', login);
-    Mongo.ops.updateOrCreate('users', user);
+    Mongo.ops.updateOrCreate('users', user, { userid : user.userid });
     
     res.status(201).send('');
 });
 
 https.createServer(credentials, app).listen(443);
 
+// only redirect the home page. 403 forbid all others
 http.createServer(function(req, res) {
     log('catch a redirect (is HSTS working?)');
     if (req.headers.host + req.url === DOMAIN + '/') {
