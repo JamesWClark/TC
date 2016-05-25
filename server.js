@@ -5,6 +5,8 @@
  * investigate HSTS + sslstrip MITM + cookie sniffing on HTTP requests
  */
 
+var DOMAIN = 'local.info';
+
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
@@ -15,7 +17,6 @@ var bodyParser = require('body-parser');
 
 var app = express();
 
-var assert = require('assert');
 var moment = require('moment');
 var Mongo = require('mongodb').MongoClient;
 
@@ -88,8 +89,8 @@ app.use('/user/:id',
     function(req, res, next) {
       console.log('Request URL:', req.originalUrl);
       next();
-    }, 
-        
+    },
+
     function (req, res, next) {
       console.log('Request Type:', req.method);
       next();
@@ -97,8 +98,6 @@ app.use('/user/:id',
 );
 
 app.post('/signin', function(req, res) {
-    log('post: /signin = ', data);
-    
     var data = req.body;
     data.timestamp = moment().format('x');
     data.ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
@@ -110,8 +109,14 @@ app.post('/signin', function(req, res) {
 https.createServer(credentials, app).listen(443);
 
 http.createServer(function(req, res) {
-    res.writeHead(301, { 'Location' : 'https://' + req.headers.host + req.url });
-    res.end();
+    log('catch a redirect (is HSTS working?)');
+    if (req.headers.host + req.url === DOMAIN + '/') {
+        res.writeHead(301, { 'Location' : 'https://' + req.headers.host + req.url });
+        res.end();
+    } else {
+        res.writeHead(403);
+        res.end();
+    }
 }).listen(80);
 
 log('ready to serve');
