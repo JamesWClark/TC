@@ -23,6 +23,7 @@
   <meta name="google-signin-client_id" content="342876179484-j1svlvjorpa0bptu960gj208psn9r71t.apps.googleusercontent.com">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="css/w3.css">
+  <link rel="stylesheet" href="https://rawgit.com/JamesWClark/RadCSS/master/rad.css" />
   <link rel="stylesheet" href="css/main.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.min.js"></script>
@@ -32,92 +33,19 @@
 </head>
 
 <body ng-app="tc" ng-controller="tcc">
- 
-  <ul class="w3-navbar w3-blue">
-    <li><a href="#">Home</a></li>
-    <li><a href="#">Link 1</a></li>
-    <li><a href="#">Link 2</a></li>
-    <li><a href="#">Link 3</a></li>
-    <li class="w3-right"><div id="signin" class="g-signin2"></div></li>
-    <li class="w3-right"><a href="#" class="w3-light-blue" id="signout" ng-click="signOut()">Signout</a></li>
-    <li class="w3-right"><a href="#" class="w3-light-blue" id="disconnect" ng-click="disconnect()">Disconnect</a></li>
-  </ul>
   
-  <div class="w3-container w3-center">
-    
-    <div class="inline">
-      <svg height="200" width="200">
-        <circle cx="100" cy="100" r="100" fill="red" />
-      </svg>
-      <svg height="200" width="200">
-        <circle cx="100" cy="100" r="100" fill="green" />
-      </svg>
-    </div>
-    <div class="inline">
-      <svg height="200" width="200">
-        <circle cx="100" cy="100" r="100" fill="white" fill-opacity="0.0" />
-      </svg>
-      <svg height="200" width="200">
-        <circle cx="100" cy="100" r="100" fill="blue" />
-      </svg>
-    </div>
+  <div id="main"></div>
   
+  <div id="login" class="flex center middle">
+    <div id="logo-container" class="x1 right">
+      <img src="img/logo.png" alt="Logo">
+    </div>
+    <div id="signin-container" class="x1 left">
+      <div id="signin" class="g-signin2"></div>
+    </div>
   </div>
   
   
-  <div id="main">
-
-    
-    <div id="user-details">
-      <table>
-        <tr>
-          <td><img ng-show="user.photo" ng-src="{{ user.photo }}"></td>
-          <td>&nbsp;</td>
-        </tr>
-        <tr>
-          <td>Photo URL: </td>
-          <td>{{ user.photo }}</td>
-        </tr>
-        <tr>
-          <td>User ID: </td>
-          <td>{{ user.userid }}</td>
-        </tr>
-        <tr>
-          <td>Full Name: </td>
-          <td>{{ user.fullName }}</td>
-        </tr>
-        <tr>
-          <td>First Name: </td>
-          <td>{{ user.firstName }}</td>
-        </tr>
-        <tr>
-          <td>Last Name: </td>
-          <td>{{ user.lastName }}</td>
-        </tr>
-        <tr>
-          <td>Email: </td>
-          <td>{{ user.email }}</td>
-        </tr>
-        <tr>
-          <td>Domain: </td>
-          <td>{{ user.domain }}</td>
-        </tr>
-        <tr>
-          <td>Timestamp: </td>
-          <td>{{ user.timestamp }}</td>
-        </tr>
-        <tr>
-          <td>ID Token: </td>
-          <td>{{ user.idToken }}</td>
-        </tr>
-        <tr>
-          <td>Expires At: </td>
-          <td>{{ user.expiresAt }}</td>
-        </tr>
-      </table>      
-    </div>
-    
-  </div>
 
 </body>
 

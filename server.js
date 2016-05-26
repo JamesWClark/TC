@@ -64,20 +64,21 @@ var generateJoinToken = function(length) {
 };
 
 Mongo.connect(mongo_url, function(err, db) {
+    
     if(err) {
-        log('error = ', err);
+        log('MongoDB connection error = ', err);
     } else {
         log('connected to mongodb');
         
         Mongo.ops = {};
         
-        Mongo.ops.insertJson = function(collection, json) {
+        Mongo.ops.insert = function(collection, json) {
             var col = db.collection(collection);
             col.insert(json, function(err, result) {
                 if(err) {
                     log('error = ', err);
                 } else {
-                    log('insert into ' + collection + ': ', json);
+                    log('insert ' + collection + ' = ', json);
                 }
             });
         };
@@ -91,7 +92,7 @@ Mongo.connect(mongo_url, function(err, db) {
                     if(err) {
                         log('error = ', err);
                     } else {
-                        log('upsert success = ', result);
+                        log('upsert ' + collection + ' = ', result);
                     }
                 }
             );
@@ -133,7 +134,7 @@ app.post('/signin', function(req, res) {
         timestamp : moment().format('x')
     };
     
-    Mongo.ops.insertJson('logins', login);
+    Mongo.ops.insert('logins', login);
     Mongo.ops.upsert('users', { 'userid' : user.userid }, user);
     
     res.status(201).send('');

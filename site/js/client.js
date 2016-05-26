@@ -4,12 +4,16 @@
 
 var app = angular.module('tc',[]);
 
-app.controller('tcc', function($scope, $window, $http) {
+app.controller('tcc', function($scope, $window, $http, $compile) {
+    
+    $scope.test = [1,2,3];
     
     var auth2;
+    var content = angular.element('#main');
+    var login   = angular.element('#login');
     
     $scope.user = {};
-
+    
     $window.appStart = function() {
         console.log('appStart()');
         gapi.load('auth2', initSigninV2);
@@ -30,7 +34,7 @@ app.controller('tcc', function($scope, $window, $http) {
         console.log('signinChanged() = ' + isSignedIn);
         
         if(isSignedIn) {
-            console.log('if this is printing, the user is signed in');
+            console.log('user signed in');
             var googleUser = auth2.currentUser.get();
             var authResponse = googleUser.getAuthResponse();
             var profile = googleUser.getBasicProfile();
@@ -45,12 +49,20 @@ app.controller('tcc', function($scope, $window, $http) {
             $scope.user.expiresAt   = authResponse.expires_at;
             $scope.$digest();
             
-            _post('/signin', $scope.user);
+            _post('/signin', $scope.user, function() {
+                $http.get('parts/top-nav.html').then(function(response) {
+                    login.hide();
+                    content.html(response.data);
+                    $compile(content)($scope);
+                });
+            });
             
         } else {
-            console.log('if this is printing, the user is not signed in');
+            console.log('user is not signed in');
             $scope.user = {};
             $scope.$digest();
+            content.html('');
+            login.show();
         }
     };
 
@@ -59,18 +71,18 @@ app.controller('tcc', function($scope, $window, $http) {
     };
     
     $scope.signOut = function() {
-        console.log('signOut()');
         auth2.signOut();
+        console.log('signOut()');
         console.log(auth2);
     };
     
     $scope.disconnect = function() {
-        console.log('disconnect()');
         auth2.disconnect();
+        console.log('disconnect()');
         console.log(auth2);
     };
     
-    var _post = function(url, data) {
+    var _post = function(url, data, next) {
         $http.post(url, data).then(
         function onSuccess(response) {
             if(response.status === 201) {
@@ -82,6 +94,7 @@ app.controller('tcc', function($scope, $window, $http) {
         function onError(response) {
             console.log('error = ' + JSON.stringify(response));
         });
+        next();
     };
 });
 

@@ -4,32 +4,48 @@ html {
 }
 
 body {
-  background-image: url('../img/background.jpg');
+  display: flex;
+  flex-direction: column;
 }
 
-table {
+body > div {
+  flex: 1;
+}
+
+#smile {
+  width: 30%;
+}
+
+#logo-container {
+  margin-right: 12px;
+}
+
+#signin-container {
+  margin-left: 12px;
+}
+
+#login-debug {
+  margin-top: 40px;
+  max-width: 800px;
+}
+
+#login {
+  min-height: 100%;
+}
+
+#login-debug table {
   word-wrap: break-word;
   table-layout:fixed;
   width: 100%;
 }
 
-tr td:first-child {
+#login-debug tr td:first-child {
   font-weight: bold;
   width: 150px;
 }
 
-td {
+#login-debug td {
   vertical-align: top;
   padding-right: 20px;
   padding-bottom: 14px;
-}
-
-#main {
-  max-width: 800px;
-  margin: auto;
-}
-
-#user-details {
-  margin-top: 40px;
-  max-width: 800px;
 }
