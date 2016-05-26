@@ -1,0 +1,12 @@
+{
+    "globals" : {
+        "__dirname" : false,
+        "$" : false,
+        "angular" : false,
+        "document" : false,
+        "gapi" : false,
+        "io" : false,
+        "jQuery" : false,
+        "require" : false
+    }
+}
