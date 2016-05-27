@@ -9,7 +9,8 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
     $scope.test = [1,2,3];
     
     var auth2;
-    var content = angular.element('#main');
+    var nav     = angular.element('#nav');
+    var main = angular.element('#main');
     var login   = angular.element('#login');
     
     $scope.user = {};
@@ -49,19 +50,27 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
             $scope.user.expiresAt   = authResponse.expires_at;
             $scope.$digest();
             
-            _post('/signin', $scope.user, function() {
+            _post('/signin', $scope.user, function(options) {
                 $http.get('parts/top-nav.html').then(function(response) {
                     login.hide();
-                    content.html(response.data);
-                    $compile(content)($scope);
+                    nav.html(response.data);
+                    $compile(nav)($scope);
                 });
+                $http.get('parts/init-course.html').then(function(response) {
+                    main.html(response.data);
+                    $compile(main)($scope);
+                });
+                if(options.data.superadmin === true) {
+                    console.log('superadmin!');
+                    $scope.user.superadmin = true;
+                }
             });
             
         } else {
             console.log('user is not signed in');
             $scope.user = {};
             $scope.$digest();
-            content.html('');
+            main.html('');
             login.show();
         }
     };
@@ -82,11 +91,12 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         console.log(auth2);
     };
     
-    var _post = function(url, data, next) {
+    var _post = function(url, data, callback) {
         $http.post(url, data).then(
         function onSuccess(response) {
             if(response.status === 201) {
                 console.log('successfully created document');
+                callback(response);
             } else {
                 console.log('expected 201, got ' + response.status + ' instead');
             }
@@ -94,7 +104,6 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         function onError(response) {
             console.log('error = ' + JSON.stringify(response));
         });
-        next();
     };
 });
 

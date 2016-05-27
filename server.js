@@ -128,16 +128,24 @@ app.use('/user/:id',
 
 app.post('/signin', function(req, res) {
     var user = req.body;
-    var login = {
-        userid : user.userid,
-        ip : req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-        timestamp : moment().format('x')
-    };
-    
-    Mongo.ops.insert('logins', login);
-    Mongo.ops.upsert('users', { 'userid' : user.userid }, user);
-    
-    res.status(201).send('');
+    if(false) { // test with any account
+    //if(domains.indexOf(user.domain) === -1) { // domain not approved
+        res.status(403).send('Currently, this app is available only to Rockhurst High School students.');
+    } else {
+        var login = {
+            userid : user.userid,
+            ip : req.headers['x-forwarded-for'] || req.connection.remoteAddress,
+            timestamp : moment().format('x')
+        };
+
+        Mongo.ops.insert('logins', login);
+        Mongo.ops.upsert('users', { 'userid' : user.userid }, user);
+
+        var options = {
+            superadmin : superadmins.indexOf(req.body.email) === -1 ? false : true
+        };
+        res.status(201).send(options);
+    }
 });
 
 https.createServer(credentials, app).listen(443);
