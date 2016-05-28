@@ -6,14 +6,14 @@ var app = angular.module('tc',[]);
 
 app.controller('tcc', function($scope, $window, $http, $compile) {
     
-    $scope.test = [1,2,3];
-    
     var auth2;
     var nav     = angular.element('#nav');
     var main = angular.element('#main');
     var login   = angular.element('#login');
     
     $scope.user = {};
+    
+    $scope.action = 'init';
     
     $window.appStart = function() {
         console.log('appStart()');
@@ -51,11 +51,6 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
             $scope.$digest();
             
             _post('/signin', $scope.user, function(options) {
-                $http.get('parts/top-nav.html').then(function(response) {
-                    login.hide();
-                    nav.html(response.data);
-                    $compile(nav)($scope);
-                });
                 $http.get('parts/init-course.html').then(function(response) {
                     main.html(response.data);
                     $compile(main)($scope);
@@ -89,6 +84,15 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         auth2.disconnect();
         console.log('disconnect()');
         console.log(auth2);
+    };
+    
+    $scope.createCourse = function() {
+        console.log('create course');
+        $scope.action = 'create-course';
+    };
+    
+    $scope.joinCourse = function() {
+        console.log('join course');
     };
     
     var _post = function(url, data, callback) {
