@@ -49,3 +49,15 @@ body > div {
   padding-right: 20px;
   padding-bottom: 14px;
 }
+
+#nav-photo {
+  height: 38px;
+}
+
+.w3-navbar li #nav-photo-link {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+#modal-create-course .w3-modal-content {
+  max-width: 600px;
+}

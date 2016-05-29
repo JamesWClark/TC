@@ -7,13 +7,10 @@ var app = angular.module('tc',[]);
 app.controller('tcc', function($scope, $window, $http, $compile) {
     
     var auth2;
-    var nav     = angular.element('#nav');
+
     var main = angular.element('#main');
-    var login   = angular.element('#login');
     
     $scope.user = {};
-    
-    $scope.action = 'init';
     
     $window.appStart = function() {
         console.log('appStart()');
@@ -66,7 +63,6 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
             $scope.user = {};
             $scope.$digest();
             main.html('');
-            login.show();
         }
     };
 
@@ -86,9 +82,17 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         console.log(auth2);
     };
     
+    $scope.getModal = function(id) {
+        switch(id) {
+            case 'create-course':
+                console.log('create-course');
+                angular.element('#modal-create-course').show();
+                break;
+        }
+    };
+    
     $scope.createCourse = function() {
         console.log('create course');
-        $scope.action = 'create-course';
     };
     
     $scope.joinCourse = function() {

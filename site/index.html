@@ -39,6 +39,7 @@
     <li><a href="#">Link 1</a></li>
     <li><a href="#">Link 2</a></li>
     <li><a href="#">Link 3</a></li>
+    <li class="w3-right"><a id="nav-photo-link" href="" class="initial"><img id="nav-photo" class="w3-circle" src="{{ user.photo }}"></a></li>
     <li class="w3-right"><a href="" ng-click="signOut()">Signout</a></li>
     <li class="w3-right"><a href="" ng-click="disconnect()">Disconnect</a></li>
     <li>{{ action }}</li>
@@ -46,12 +47,16 @@
   
   <div id="main"></div>
 
-  <form class="w3-container" ng-if="action == 'create-course'">
-    <input class="w3-input" type="text">
-    <label>Course Name</label>
-    <button class="w3-btn w3-green">Create</button>
-  </form>
-      
+  <div id="modal-create-course" class="w3-modal">
+    <div class="w3-modal-content w3-card-8">
+      <div class="w3-container">
+        <label><strong>Course Name</strong></label>
+        <input class="w3-input" type="text" placeholder="Enter Course Name">
+        <button class="w3-btn w3-green">Create</button>
+      </div>
+    </div>
+  </div>
+  
   <div id="login" class="flex center middle" ng-hide="user.userid">
     <div id="logo-container" class="x1 right">
       <img src="img/logo.png" alt="Logo">
