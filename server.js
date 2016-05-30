@@ -6,6 +6,7 @@
  */
 
 var DOMAIN = 'local.info';
+var COURSE_JOIN_TOKEN_LENGTH = 8;
 
 var fs = require('fs');
 var http = require('http');
@@ -25,7 +26,7 @@ var credentials = {
 
 var mongo_url = 'mongodb://localhost:27017/teachcode';
 
-var superadmins = ['jwclark@rockhursths.edu'];
+var superadmins = ['jwclark@rockhursths.edu','this.clark@gmail.com'];
 var domains = ['rockhursths.edu','amdg.rockhursths.edu'];
 var tokenSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -72,6 +73,18 @@ Mongo.connect(mongo_url, function(err, db) {
         
         Mongo.ops = {};
         
+        Mongo.ops.findOne = function(collection, json, callback) {
+            var col = db.collection(collection);
+            col.findOne(json, function(err, doc) {
+                if(err) {
+                    log('error = ' + err);
+                } else {
+                    log('findOne = ', doc);
+                    callback(doc);
+                }
+            });
+        };
+        
         Mongo.ops.insert = function(collection, json) {
             var col = db.collection(collection);
             col.insert(json, function(err, result) {
@@ -113,21 +126,52 @@ app.use('/', express.static(__dirname + '/site'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+var authorizeRequest = function(req, res, next) {
+    log('authorizeRequest middlware, req.url = ', req.url);
+    if(req.url === '/signin') {
+        log('skipping /signin auth middleware');
+    } else {
+        if(req.body && req.body.a) {
+            var auth = req.body.a;
+            Mongo.ops.findOne('users', auth, function(doc) {
+                if(doc && doc.expiresAt && doc.idToken) {
+                    var now = moment();
+                    var expiration = moment(doc.expiresAt);
+                    if(auth.idToken && doc.idToken) {
+                        if (auth.idToken !== doc.idToken || now.isAfter(expiration)) {
+                            res.status(401).send('not authorized'); // not authorized
+                        }
+                    }                    
+                } else {
+                    res.status(401).send('not authorized');
+                }
+            });
+        }else {
+            res.status(401).send('not authorized');
+        }
+    }
+    next();
+};
+
+app.use(authorizeRequest);
+
+// test stub
 app.use('/user/:id',
         
     function(req, res, next) {
-      console.log('Request URL:', req.originalUrl);
-      next();
+        console.log('Request URL:', req.originalUrl);
+        next();
     },
 
     function (req, res, next) {
-      console.log('Request Type:', req.method);
-      next();
+        console.log('Request Type:', req.method);
+        next();
     }
 );
 
 app.post('/signin', function(req, res) {
-    var user = req.body;
+    var user = req.body.d;
+    log('received user = ', user);
     if(false) { // test with any account
     //if(domains.indexOf(user.domain) === -1) { // domain not approved
         res.status(403).send('Currently, this app is available only to Rockhurst High School students.');
@@ -142,9 +186,28 @@ app.post('/signin', function(req, res) {
         Mongo.ops.upsert('users', { 'userid' : user.userid }, user);
 
         var options = {
-            superadmin : superadmins.indexOf(req.body.email) === -1 ? false : true
+            superadmin : superadmins.indexOf(user.email) === -1 ? false : true
         };
         res.status(201).send(options);
+    }
+});
+
+app.post('/course', function(req, res) {
+    if(req.body && req.body.a && req.body.d) {
+        var auth   = req.body.a;
+        var course = req.body.d;
+        course.userid = auth.userid;
+        course.creation = moment().format('x');
+        course.joinToken = generateJoinToken(COURSE_JOIN_TOKEN_LENGTH);
+
+        log('received create-course request');
+        log('auth = ', auth);
+        log('course = ', course);
+
+        Mongo.ops.insert('courses', course);
+        res.status(201).send(course.joinToken);
+    } else {
+        res.status(400).send('');
     }
 });
 

@@ -12,6 +12,31 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
     
     $scope.user = {};
     
+    var log = function(msg, obj) {
+        if(obj) {
+            try {
+                console.log(msg + JSON.stringify(obj));
+            } catch(err) {
+                var simpleObject = {};
+                for (var prop in obj ){
+                    if (!obj.hasOwnProperty(prop)){
+                        continue;
+                    }
+                    if (typeof(obj[prop]) == 'object'){
+                        continue;
+                    }
+                    if (typeof(obj[prop]) == 'function'){
+                        continue;
+                    }
+                    simpleObject[prop] = obj[prop];
+                }
+                console.log('c-' + msg + JSON.stringify(simpleObject)); // returns cleaned up JSON
+            }        
+        } else {
+            console.log(msg);
+        }
+    };
+    
     $window.appStart = function() {
         console.log('appStart()');
         gapi.load('auth2', initSigninV2);
@@ -92,7 +117,11 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
     };
     
     $scope.createCourse = function() {
-        console.log('create course');
+        console.log('create course = ' + $scope.newCourse);
+        _post('/course', $scope.newCourse, function() {
+            
+        });
+        
     };
     
     $scope.joinCourse = function() {
@@ -100,7 +129,15 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
     };
     
     var _post = function(url, data, callback) {
-        $http.post(url, data).then(
+        var permission = {
+            userid : $scope.user.userid,
+            idToken : $scope.user.idToken
+        };
+        var authdata = {
+            a : permission,
+            d : data
+        };
+        $http.post(url, authdata).then(
         function onSuccess(response) {
             if(response.status === 201) {
                 console.log('successfully created document');
@@ -113,5 +150,8 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
             console.log('error = ' + JSON.stringify(response));
         });
     };
+    
+    angular.element('.datepicker').datepicker();
+
 });
 

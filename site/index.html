@@ -23,11 +23,13 @@
   <meta name="google-signin-client_id" content="342876179484-j1svlvjorpa0bptu960gj208psn9r71t.apps.googleusercontent.com">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="css/w3.css">
-  <link rel="stylesheet" href="https://rawgit.com/JamesWClark/RadCSS/master/rad.css" />
+  <!--<link rel="stylesheet" href="https://rawgit.com/JamesWClark/RadCSS/master/rad.css" />-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.css">
   <link rel="stylesheet" href="css/main.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
   <script src="js/client.js"></script>
   <script src="https://apis.google.com/js/platform.js?onload=appStart" async defer></script>
 </head>
@@ -39,7 +41,7 @@
     <li><a href="#">Link 1</a></li>
     <li><a href="#">Link 2</a></li>
     <li><a href="#">Link 3</a></li>
-    <li class="w3-right"><a id="nav-photo-link" href="" class="initial"><img id="nav-photo" class="w3-circle" src="{{ user.photo }}"></a></li>
+    <li class="w3-right"><a id="nav-photo-link" href="" class="initial"><img id="nav-photo" class="w3-circle" ng-src="{{ user.photo }}"></a></li>
     <li class="w3-right"><a href="" ng-click="signOut()">Signout</a></li>
     <li class="w3-right"><a href="" ng-click="disconnect()">Disconnect</a></li>
     <li>{{ action }}</li>
@@ -49,10 +51,37 @@
 
   <div id="modal-create-course" class="w3-modal">
     <div class="w3-modal-content w3-card-8">
-      <div class="w3-container">
+      <div class="w3-container w3-dark-grey">
+        <h1>Create a New Course</h1>
+      </div>
+      <div class="w3-container w3-padding-top w3-padding-bottom">
         <label><strong>Course Name</strong></label>
-        <input class="w3-input" type="text" placeholder="Enter Course Name">
-        <button class="w3-btn w3-green">Create</button>
+        <input class="w3-input" type="text" placeholder="Enter Course Name" ng-model="newCourse.title" required>
+      </div>
+      <div class="w3-row-padding">
+        <div class="w3-col s6">
+          <label><strong>Start Date</strong></label>
+          <input class="w3-input datepicker" type="text" placeholder="Enter Start Date" ng-model="newCourse.start">
+        </div>
+        <div class="w3-col s6">
+          <label><strong>End Date</strong></label>
+          <input class="w3-input datepicker" type="text" placeholder="Enter End Date" ng-model="newCourse.end">
+        </div>
+      </div>
+      <div class="w3-container w3-padding-top w3-padding-bottom">
+        <button class="w3-btn w3-green" ng-click="createCourse()">Create</button>
+      </div>
+      <div class="w3-container w3-dark-grey">&nbsp;</div>
+    </div>
+  </div>
+  
+  <div id="modal-join-course" class="w3-modal">
+    <div class="w3-modal-content w3-card-8">
+      <div class="w3-container">
+        <label><strong>Course Code</strong></label>
+        <input class="w3-input" type="text" placeholder="Enter Course Code" required>
+        <label>Get a course code from your teacher.</label>
+        <button class="w3-btn w3-green">Join</button>
       </div>
     </div>
   </div>
