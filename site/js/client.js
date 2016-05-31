@@ -121,7 +121,7 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         _post('/course', $scope.newCourse, function() {
             
         });
-        
+        angular.element('#modal-create-course').hide();
     };
     
     $scope.joinCourse = function() {
