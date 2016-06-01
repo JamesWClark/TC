@@ -85,6 +85,18 @@ Mongo.connect(mongo_url, function(err, db) {
             });
         };
         
+        Mongo.ops.find = function(collection, json, callback) {
+            var col = db.collection(collection);
+            col.find(json).toArray(function(err, docs) {
+                if(err) {
+                    log('error = ', err);
+                } else {
+                    log('find ' + docs.length + ' = ', docs);
+                }
+                callback(docs);
+            });
+        };
+        
         Mongo.ops.insert = function(collection, json) {
             var col = db.collection(collection);
             col.insert(json, function(err, result) {
@@ -184,11 +196,16 @@ app.post('/signin', function(req, res) {
 
         Mongo.ops.insert('logins', login);
         Mongo.ops.upsert('users', { 'userid' : user.userid }, user);
-
-        var options = {
-            superadmin : superadmins.indexOf(user.email) === -1 ? false : true
-        };
-        res.status(201).send(options);
+        Mongo.ops.find('courses', { 'userid' : user.userid }, function(docs) {
+            var opts = {
+                superadmin : superadmins.indexOf(user.email) === -1 ? false : true
+            };
+            var data = {
+                courses: docs,
+                options: opts
+            };
+            res.status(201).send(data);
+        });
     }
 });
 

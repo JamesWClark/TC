@@ -36,6 +36,7 @@
 
 <body ng-app="tc" ng-controller="tcc">
 
+  <!-- TOP NAV -->
   <ul id="top-nav" class="w3-navbar w3-blue" ng-if="user.userid">
     <li><a href="#">Home</a></li>
     <li><a href="#">Link 1</a></li>
@@ -48,33 +49,50 @@
   </ul>
   
   <div id="main"></div>
+  
+  <div id="pnl-list-courses">
+    {{ user.courses }}
+  </div>
 
+  <!-- MODAL CREATE COURSE -->
   <div id="modal-create-course" class="w3-modal">
-    <div class="w3-modal-content w3-card-8">
+    <div class="w3-modal-content w3-card-8" ng-form name="formCreateCourse">
       <div class="w3-container w3-dark-grey">
+        <span class="w3-closebtn" ng-click="hide('#modal-create-course')">&times;</span>
         <h1>Create a New Course</h1>
       </div>
       <div class="w3-container w3-padding-top w3-padding-bottom">
         <label><strong>Course Name</strong></label>
-        <input class="w3-input" type="text" placeholder="Enter Course Name" ng-model="newCourse.title" required>
+        <span class="w3-text-red" ng-show="formCreateCourse.title.$dirty && formCreateCourse.title.$invalid">
+          <span ng-show="formCreateCourse.title.$error.required">Required</span>
+        </span>
+        <input name="title" class="w3-input" type="text" placeholder="Enter Course Name" ng-model="newCourse.title" required>
       </div>
       <div class="w3-row-padding">
         <div class="w3-col s6">
           <label><strong>Start Date</strong></label>
-          <input class="w3-input datepicker" type="text" placeholder="Enter Start Date" ng-model="newCourse.start">
+          <span class="w3-text-red" ng-show="formCreateCourse.startDate.$dirty && formCreateCourse.startDate.$invalid">
+            <span ng-show="formCreateCourse.startDate.$error.required">Required</span>
+          </span>          
+          <input name="startDate" class="w3-input datepicker" type="text" placeholder="Enter Start Date" ng-model="newCourse.start" required>
         </div>
         <div class="w3-col s6">
           <label><strong>End Date</strong></label>
-          <input class="w3-input datepicker" type="text" placeholder="Enter End Date" ng-model="newCourse.end">
+          <span class="w3-text-red" ng-show="formCreateCourse.endDate.$dirty && formCreateCourse.endDate.$invalid">
+            <span ng-show="formCreateCourse.endDate.$error.required">Required</span>
+          </span>          
+          <input name="endDate" class="w3-input datepicker" type="text" placeholder="Enter End Date" ng-model="newCourse.end" required>
         </div>
       </div>
       <div class="w3-container w3-padding-top w3-padding-bottom">
-        <button class="w3-btn w3-green" ng-click="createCourse()">Create</button>
+        <button class="w3-btn w3-green" ng-disabled="formCreateCourse.title.$invalid || formCreateCourse.startDate.$invalid || formCreateCourse.endDate.$invalid" ng-click="createCourse()">Create</button>
+        <button class="w3-btn w3-green" ng-click="hide('#modal-create-course')">Cancel</button>
       </div>
       <div class="w3-container w3-dark-grey">&nbsp;</div>
     </div>
   </div>
   
+  <!-- MODAL JOIN COURSE -->
   <div id="modal-join-course" class="w3-modal">
     <div class="w3-modal-content w3-card-8">
       <div class="w3-container">
@@ -86,6 +104,7 @@
     </div>
   </div>
   
+  <!-- GOOGLE LOGIN (KEEP IN DOM TO PREVENT GOOGLE WEB AUTH SCRIPT ERRORS) -->
   <div id="login" class="flex center middle" ng-hide="user.userid">
     <div id="logo-container" class="x1 right">
       <img src="img/logo.png" alt="Logo">

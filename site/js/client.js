@@ -72,15 +72,18 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
             $scope.user.expiresAt   = authResponse.expires_at;
             $scope.$digest();
             
-            _post('/signin', $scope.user, function(options) {
+            _post('/signin', $scope.user, function(data) {
+                
                 $http.get('parts/init-course.html').then(function(response) {
                     main.html(response.data);
                     $compile(main)($scope);
                 });
-                if(options.data.superadmin === true) {
+                
+                if(data.data.options.superadmin === true) {
                     console.log('superadmin!');
                     $scope.user.superadmin = true;
                 }
+                $scope.user.courses = data.data.courses;
             });
             
         } else {
@@ -116,12 +119,17 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         }
     };
     
+    $scope.hide = function(ele) {
+        angular.element(ele).hide();
+    };
+    
     $scope.createCourse = function() {
         console.log('create course = ' + $scope.newCourse);
         _post('/course', $scope.newCourse, function() {
-            
+            angular.element('#modal-create-course').hide();
+            $scope.formCreateCourse.$setPristine();
+            $scope.newCourse = {};
         });
-        angular.element('#modal-create-course').hide();
     };
     
     $scope.joinCourse = function() {
