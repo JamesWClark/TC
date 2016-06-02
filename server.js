@@ -80,7 +80,7 @@ Mongo.connect(mongo_url, function(err, db) {
                     log('error = ' + err);
                 } else {
                     log('findOne = ', doc);
-                    callback(doc);
+                    callback(err, doc);
                 }
             });
         };
@@ -144,21 +144,36 @@ var authorizeRequest = function(req, res, next) {
         log('skipping /signin auth middleware');
     } else {
         if(req.body && req.body.a) {
+            log('ok: has body, has auth');
             var auth = req.body.a;
-            Mongo.ops.findOne('users', auth, function(doc) {
-                if(doc && doc.expiresAt && doc.idToken) {
-                    var now = moment();
-                    var expiration = moment(doc.expiresAt);
-                    if(auth.idToken && doc.idToken) {
-                        if (auth.idToken !== doc.idToken || now.isAfter(expiration)) {
-                            res.status(401).send('not authorized'); // not authorized
-                        }
-                    }                    
+            Mongo.ops.findOne('users', auth, function(err, user) {
+                if(err) {
+                    res.status(400).send('ugh, error :(');
                 } else {
-                    res.status(401).send('not authorized');
+                    if(user && user.expiresAt && user.idToken) {
+                        log('ok: has user with expiration and token');
+                        var now = moment();
+                        var expiration = moment(user.expiresAt);
+                        if(auth.idToken && user.idToken) {
+                            log('ok: user and auth have tokens');
+                            if (auth.idToken !== user.idToken) {
+                                log('fail: tokens dont match');
+                                res.status(401).send('not authorized'); // not authorized
+                            } else if (now.isAfter(expiration)){
+                                log('fail: user token expired');
+                                res.status(401).send('token expired');
+                            } else {
+                                log('ok: looking good so far');
+                            }
+                        }                    
+                    } else {
+                        log('fail: invalid user');
+                        res.status(401).send('not authorized');
+                    }
                 }
             });
-        }else {
+        } else {
+            log('fail: body or auth is missing');
             res.status(401).send('not authorized');
         }
     }
@@ -209,12 +224,37 @@ app.post('/signin', function(req, res) {
     }
 });
 
+app.post('/join/course', function(req, res) {
+    if(req.body && req.body.a && req.body.d) {
+        log('requesting: ', req.url);
+        var token = req.body.d;
+        log(':token = ', token);
+        Mongo.ops.findOne('courses', { 'joinToken' : token }, function(err, course) {
+            if(err) {
+                log(req.url + ' error = ',  err);
+            } else {
+                log('ok: you may join the course = ', course);
+                var insert = {
+                    'userid' : req.body.a.userid,
+                    'courseid' : course._id
+                };
+                Mongo.ops.insert('studentsInCourses', insert, function(err, doc) {
+                    log('fingers crossed');
+                });
+            }
+            res.status(200).send('ok?');
+        });
+    } else {
+        res.status(400).send('');
+    }
+});
+
 app.post('/course', function(req, res) {
     if(req.body && req.body.a && req.body.d) {
-        var auth   = req.body.a;
-        var course = req.body.d;
-        course.userid = auth.userid;
-        course.creation = moment().format('x');
+        var auth         = req.body.a;
+        var course       = req.body.d;
+        course.userid    = auth.userid;
+        course.creation  = moment().format('x');
         course.joinToken = generateJoinToken(COURSE_JOIN_TOKEN_LENGTH);
 
         log('received create-course request');
@@ -222,7 +262,7 @@ app.post('/course', function(req, res) {
         log('course = ', course);
 
         Mongo.ops.insert('courses', course);
-        res.status(201).send(course.joinToken);
+        res.status(201).send(course);
     } else {
         res.status(400).send('');
     }

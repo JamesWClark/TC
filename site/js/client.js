@@ -7,8 +7,6 @@ var app = angular.module('tc',[]);
 app.controller('tcc', function($scope, $window, $http, $compile) {
     
     var auth2;
-
-    var main = angular.element('#main');
     
     $scope.user = {};
     
@@ -72,25 +70,20 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
             $scope.user.expiresAt   = authResponse.expires_at;
             $scope.$digest();
             
-            _post('/signin', $scope.user, function(data) {
-                
-                $http.get('parts/init-course.html').then(function(response) {
-                    main.html(response.data);
-                    $compile(main)($scope);
-                });
-                
-                if(data.data.options.superadmin === true) {
+            _post('/signin', $scope.user, function(response) {
+                if(response.data.options.superadmin === true) {
                     console.log('superadmin!');
                     $scope.user.superadmin = true;
                 }
-                $scope.user.courses = data.data.courses;
+                $scope.user.courses = response.data.courses;
+                $scope.view = 'list-courses';
             });
             
         } else {
             console.log('user is not signed in');
             $scope.user = {};
+            $scope.view = 'signin';
             $scope.$digest();
-            main.html('');
         }
     };
 
@@ -113,8 +106,12 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
     $scope.getModal = function(id) {
         switch(id) {
             case 'create-course':
-                console.log('create-course');
+                console.log('get modal-create-course');
                 angular.element('#modal-create-course').show();
+                break;
+            case 'join-course':
+                console.log('get modal-join-course called');
+                angular.element('#modal-join-course').show();
                 break;
         }
     };
@@ -125,15 +122,22 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
     
     $scope.createCourse = function() {
         console.log('create course = ' + $scope.newCourse);
-        _post('/course', $scope.newCourse, function() {
+        _post('/course', $scope.newCourse, function(response) {
+            // should make a spinning button on top of the create click that waits for the post to return before hiding the modal
             angular.element('#modal-create-course').hide();
+            $scope.user.courses.push(response.data);
             $scope.formCreateCourse.$setPristine();
             $scope.newCourse = {};
+            log('created course = ', response.data);
         });
     };
     
-    $scope.joinCourse = function() {
-        console.log('join course');
+    $scope.joinCourse = function(token) {
+        console.log('trying to join course with token = ' + token);
+        var url = '/join/course';
+        _post(url, token, function(response) {
+            log('joining with token ' + token + ', response.data = ', response.data);
+        });
     };
     
     var _post = function(url, data, callback) {
@@ -147,11 +151,11 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         };
         $http.post(url, authdata).then(
         function onSuccess(response) {
-            if(response.status === 201) {
-                console.log('successfully created document');
+            if(response.status === 201 || response.status === 200) {
+                console.log('generic post success with status = ' + response.status);
                 callback(response);
             } else {
-                console.log('expected 201, got ' + response.status + ' instead');
+                console.log('expected 200 or 201, got ' + response.status + ' instead');
             }
         }, 
         function onError(response) {
@@ -160,6 +164,7 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
     };
     
     angular.element('.datepicker').datepicker();
+    angular.element('input').attr('autocomplete','off');
 
 });
 
