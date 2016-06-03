@@ -80,7 +80,7 @@ Mongo.connect(mongo_url, function(err, db) {
                     log('error = ' + err);
                 } else {
                     log('findOne = ', doc);
-                    callback(err, doc);
+                    if(callback) callback(err, doc);
                 }
             });
         };
@@ -93,11 +93,11 @@ Mongo.connect(mongo_url, function(err, db) {
                 } else {
                     log('find ' + docs.length + ' = ', docs);
                 }
-                callback(docs);
+                if (callback) callback(docs);
             });
         };
         
-        Mongo.ops.insert = function(collection, json) {
+        Mongo.ops.insert = function(collection, json, callback) {
             var col = db.collection(collection);
             col.insert(json, function(err, result) {
                 if(err) {
@@ -105,6 +105,7 @@ Mongo.connect(mongo_url, function(err, db) {
                 } else {
                     log('insert ' + collection + ' = ', json);
                 }
+                if (callback) callback(err, result);
             });
         };
         
@@ -226,12 +227,14 @@ app.post('/signin', function(req, res) {
 
 app.post('/join/course', function(req, res) {
     if(req.body && req.body.a && req.body.d) {
-        log('requesting: ', req.url);
         var token = req.body.d;
-        log(':token = ', token);
+        var userid = req.body.a.userid;
+        log('attempting to join course with token = ', token);
+        
+        // check if a course with this token exists
         Mongo.ops.findOne('courses', { 'joinToken' : token }, function(err, course) {
             if(err) {
-                log(req.url + ' error = ',  err);
+                log('error from ' + req.url + ' = ',  err);
             } else {
                 log('ok: you may join the course = ', course);
                 var insert = {
@@ -239,10 +242,14 @@ app.post('/join/course', function(req, res) {
                     'courseid' : course._id
                 };
                 Mongo.ops.insert('studentsInCourses', insert, function(err, doc) {
-                    log('fingers crossed');
+                    if(err) {
+                        log('fail: error joining course = ', err);
+                    } else {
+                        log('user ' + userid + ' joined course ' + course.title + ' with token = ' + token);
+                        res.status(201).send(course);
+                    }
                 });
             }
-            res.status(200).send('ok?');
         });
     } else {
         res.status(400).send('');
