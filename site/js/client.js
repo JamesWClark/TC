@@ -116,6 +116,10 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         }
     };
     
+    $scope.home = function() {
+        $scope.view = 'list-courses';
+    };
+    
     $scope.hide = function(ele) {
         angular.element(ele).hide();
     };
@@ -132,6 +136,12 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         });
     };
     
+    $scope.viewCourse = function(course) {
+        log('view course = ', course);
+		$scope.course = course;
+		$scope.view = 'view-course';
+    };
+        
     $scope.joinCourse = function(token) {
         console.log('trying to join course with token = ' + token);
         var url = '/join/course';
@@ -154,15 +164,12 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         };
         $http.post(url, authdata).then(
         function onSuccess(response) {
-            if(response.status === 201 || response.status === 200) {
-                console.log('generic post success with status = ' + response.status);
-                callback(response);
-            } else {
-                console.log('expected 200 or 201, got ' + response.status + ' instead');
-            }
-        }, 
-        function onError(response) {
-            console.log('error = ' + JSON.stringify(response));
+            log('_post success = ', response);
+            callback(response);
+        },
+        function onError(error) {
+            log('_post error = ', error);
+            callback(error);
         });
     };
     

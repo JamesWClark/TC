@@ -235,13 +235,13 @@ app.post('/join/course', function(req, res) {
         Mongo.ops.findOne('courses', { 'joinToken' : token }, function(err, course) {
             if(err) {
                 log('error from ' + req.url + ' = ',  err);
-            } else {
+            } else if (course) {
                 log('ok: you may join the course = ', course);
-                var insert = {
+                var studentInCourse = {
                     'userid' : req.body.a.userid,
                     'courseid' : course._id
                 };
-                Mongo.ops.insert('studentsInCourses', insert, function(err, doc) {
+                Mongo.ops.insert('studentsInCourses', studentInCourse, function(err, doc) {
                     if(err) {
                         log('fail: error joining course = ', err);
                     } else {
@@ -249,6 +249,9 @@ app.post('/join/course', function(req, res) {
                         res.status(201).send(course);
                     }
                 });
+            } else {
+                log('fail: course not found');
+                res.status(404).send('');
             }
         });
     } else {
