@@ -50,7 +50,7 @@
   
   <!-- VIEW: COURSE -->
   <div id="view-course" ng-if="view === 'view-course'">
-    <div class="w3-container w3-orange w3-center"><h1>{{ course.title }}</h1></div>
+    <div class="w3-container w3-amber w3-center"><h1>{{ course.title }}</h1></div>
   </div>
   
   <!-- VIEW: LIST COURSES -->
@@ -119,6 +119,7 @@
       <div class="w3-container w3-padding-top w3-padding-bottom">
         <button class="w3-btn w3-green" ng-disabled="formJoinCourse.courseCode.$invalid" ng-click="joinCourse(joinToken)">Join</button>
         <button class="w3-btn w3-green" ng-click="hide('#modal-join-course')">Cancel</button>
+        <span class="w3-text-red">{{ joinError }}</span>
       </div>
       <div class="w3-container w3-dark-grey">&nbsp;</div>
     </div>

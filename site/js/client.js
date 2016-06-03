@@ -146,10 +146,17 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         console.log('trying to join course with token = ' + token);
         var url = '/join/course';
         _post(url, token, function(response) {
-            var course = response.data;
-            log('joining with token ' + token + ', response.data = ', response.data);
-            $scope.user.courses.push(course);
-            angular.element('#modal-join-course').hide();
+            switch(response.status) {
+                case 404: // join token not found
+                    log('fail: course not found with token = ', token);
+                    $scope.joinError = 'Course not found.';
+                    break;
+                case 201: // successfully joined the course
+                    log('successfully joined course = ', response.data);
+                    $scope.user.courses.push(response.data);
+                    angular.element('#modal-join-course').hide();
+                    break;
+            }
         });
     };
     
