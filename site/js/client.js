@@ -147,6 +147,10 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         var url = '/join/course';
         _post(url, token, function(response) {
             switch(response.status) {
+                case 400:
+                    log('fail: ', response.data);
+                    $scope.joinError = response.data;
+                    break;
                 case 404: // join token not found
                     log('fail: course not found with token = ', token);
                     $scope.joinError = 'Course not found.';
@@ -184,4 +188,3 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
     angular.element('input').attr('autocomplete','off');
 
 });
-

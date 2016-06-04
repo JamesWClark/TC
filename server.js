@@ -231,25 +231,46 @@ app.post('/join/course', function(req, res) {
         var userid = req.body.a.userid;
         log('attempting to join course with token = ', token);
         
-        // check if a course with this token exists
+        // first, does the course even exist?
         Mongo.ops.findOne('courses', { 'joinToken' : token }, function(err, course) {
-            if(err) {
+            if (err) {
                 log('error from ' + req.url + ' = ',  err);
-            } else if (course) {
-                log('ok: you may join the course = ', course);
-                var studentInCourse = {
-                    'userid' : req.body.a.userid,
-                    'courseid' : course._id
-                };
-                Mongo.ops.insert('studentsInCourses', studentInCourse, function(err, doc) {
-                    if(err) {
-                        log('fail: error joining course = ', err);
+            } else if (course) { // yes - course exists
+                var userInCourse = { 'courseid' : course._id, 'userid' : userid };
+                // wait, are you already in the course?
+                Mongo.ops.findOne('studentsInCourses', userInCourse, function(err, doc) {
+                    if (err) {
+                        log('error from ' + req.url + ' = ', err);
+                    } else if (doc) {
+                        log(userid + ', you\'re already in the course! GTFO');
+                        res.status(400).send("You're already in this course.");
                     } else {
-                        log('user ' + userid + ' joined course ' + course.title + ' with token = ' + token);
-                        res.status(201).send(course);
+                        // hmm, do you own the course?
+                        Mongo.ops.findOne('courses', userInCourse, function(err, doc) {
+                            if (err) {
+                                log('error from ' + req.url + ' = ', err);
+                            } else if (doc) {
+                                log(userid + ' wait, you ARE the owner :S');
+                                res.status(400).send("You can't join your own course");
+                            } else {
+                                log('ok: you may join the course = ', course);
+                                var studentInCourse = {
+                                    'userid' : req.body.a.userid,
+                                    'courseid' : course._id
+                                };
+                                Mongo.ops.insert('studentsInCourses', studentInCourse, function(err, doc) {
+                                    if(err) {
+                                        log('fail: error joining course = ', err);
+                                    } else {
+                                        log('user ' + userid + ' joined course ' + course.title + ' with token = ' + token);
+                                        res.status(201).send(course);
+                                    }
+                                });                
+                            }
+                        });
                     }
                 });
-            } else {
+            } else { // no - course not found
                 log('fail: course not found');
                 res.status(404).send('');
             }
