@@ -141,7 +141,7 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
 		$scope.course = course;
 		$scope.view = 'view-course';
     };
-        
+    
     $scope.joinCourse = function(token) {
         console.log('trying to join course with token = ' + token);
         var url = '/join/course';
@@ -159,6 +159,7 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
                     log('successfully joined course = ', response.data);
                     $scope.user.courses.push(response.data);
                     angular.element('#modal-join-course').hide();
+                    $scope.formJoinCourse.$setPristine();
                     break;
             }
         });

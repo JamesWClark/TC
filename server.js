@@ -15,6 +15,7 @@ var Mongo = require('mongodb').MongoClient;
 var helmet = require('helmet');
 var moment = require('moment');
 var express = require('express');
+var request = require('request');
 var bodyParser = require('body-parser');
 
 var app = express();
@@ -31,6 +32,7 @@ var domains = ['rockhursths.edu','amdg.rockhursths.edu'];
 var tokenSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 var log = function(msg, obj) {
+    console.log('\n');
     if(obj) {
         try {
             console.log(msg + JSON.stringify(obj));
@@ -140,13 +142,26 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 var authorizeRequest = function(req, res, next) {
-    log('authorizeRequest middlware, req.url = ', req.url);
+    log('authorize req.url = ', req.url);
     if(req.url === '/signin') {
         log('skipping /signin auth middleware');
     } else {
         if(req.body && req.body.a) {
             log('ok: has body, has auth');
             var auth = req.body.a;
+            
+            //validate the token with Google
+            log("ok: let's check with Google: https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + auth.idToken);
+            request('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + auth.idToken, function(err, res, body) {
+                if(err) {
+                    log('error while validating a user id_token with Google = ', err);
+                } else if (res.statusCode === 200) {
+                    log('ok: Googles reply = ', JSON.parse(body));
+                } else {
+                    // throw somethign else?
+                }
+            });
+            
             Mongo.ops.findOne('users', auth, function(err, user) {
                 if(err) {
                     res.status(400).send('ugh, error :(');
