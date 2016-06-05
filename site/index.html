@@ -51,6 +51,7 @@
   <!-- VIEW: COURSE -->
   <div id="view-course" ng-if="view === 'view-course'">
     <div class="w3-container w3-amber w3-center"><h1>{{ course.title }} &middot; {{ course.joinToken }}</h1></div>
+    <a id="add-content" class="w3-btn-floating-large w3-green" ng-if="user.superadmin === true">+</a>
   </div>
   
   <!-- VIEW: LIST COURSES -->

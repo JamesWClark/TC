@@ -7,6 +7,7 @@
 
 var DOMAIN = 'local.info';
 var COURSE_JOIN_TOKEN_LENGTH = 8;
+var CLIENT_ID = '342876179484-j1svlvjorpa0bptu960gj208psn9r71t.apps.googleusercontent.com';
 
 var fs = require('fs');
 var http = require('http');
@@ -141,59 +142,61 @@ app.use('/', express.static(__dirname + '/site'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+var errorHandler = function(err, req, res, next) {
+    if(err.status) {
+        res.status(err.status);
+    } else {
+        res.status(500);
+    }
+    res.render('error', { error : err });
+    next(err);
+};
+
+app.use(errorHandler);
+
 var authorizeRequest = function(req, res, next) {
     log('authorize req.url = ', req.url);
-    if(req.url === '/signin') {
-        log('skipping /signin auth middleware');
-    } else {
-        if(req.body && req.body.a) {
-            log('ok: has body, has auth');
-            var auth = req.body.a;
-            
-            //validate the token with Google
-            log("ok: let's check with Google: https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + auth.idToken);
-            request('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + auth.idToken, function(err, res, body) {
-                if(err) {
-                    log('error while validating a user id_token with Google = ', err);
-                } else if (res.statusCode === 200) {
-                    log('ok: Googles reply = ', JSON.parse(body));
-                } else {
-                    // throw somethign else?
-                }
-            });
-            
-            Mongo.ops.findOne('users', auth, function(err, user) {
-                if(err) {
-                    res.status(400).send('ugh, error :(');
-                } else {
-                    if(user && user.expiresAt && user.idToken) {
-                        log('ok: has user with expiration and token');
-                        var now = moment();
-                        var expiration = moment(user.expiresAt);
-                        if(auth.idToken && user.idToken) {
-                            log('ok: user and auth have tokens');
-                            if (auth.idToken !== user.idToken) {
-                                log('fail: tokens dont match');
-                                res.status(401).send('not authorized'); // not authorized
-                            } else if (now.isAfter(expiration)){
-                                log('fail: user token expired');
-                                res.status(401).send('token expired');
-                            } else {
-                                log('ok: looking good so far');
-                            }
-                        }                    
-                    } else {
-                        log('fail: invalid user');
-                        res.status(401).send('not authorized');
-                    }
-                }
-            });
-        } else {
-            log('fail: body or auth is missing');
-            res.status(401).send('not authorized');
+    if(req.body && req.body.a) {
+        log('ok: req has body & auth');
+        var auth = req.body.a;
+        
+        // first, is this token expired?
+        var now = moment();
+        var expiration = moment(auth.expiresAt);
+        if(now.isAfter(expiration)) {
+            // get a refresh token
         }
+
+        // validate the token with Google
+        log("ok: let's check with Google: https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + auth.idToken);
+        request('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + auth.idToken, function(err, res, body) {
+            if(err) {
+                log('error while validating a user id_token with Google = ', err);
+                next(err);
+            } else if (res.statusCode === 200) {
+                var reply = JSON.parse(body);
+                log('ok: Googles reply = ', reply);
+
+                //Once you get these claims, you still need to check that the aud claim contains one of your app's client IDs.
+                //If it does, then the token is both valid and intended for your client, and you can safely retrieve and use 
+                //the user's unique Google ID from the sub claim.
+                //https://developers.google.com/identity/sign-in/web/backend-auth#calling-the-tokeninfo-endpoint
+                
+                if(reply.aud === CLIENT_ID) {
+                    log('ok: you may proceed');
+                    next();
+                } else {
+                    log('fail: failed Google token validation');
+                    next({ 'status' : 401, 'msg' : 'failed Google token validation' });
+                }
+            } else {
+                next('#!@#$');
+            }
+        });
+    } else {
+        log('fail: body or auth is missing');
+        next({ 'status' : 401, 'msg' : 'not authorized' });
     }
-    next();
 };
 
 app.use(authorizeRequest);

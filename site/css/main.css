@@ -85,3 +85,8 @@ input:invalid {
 .border-dotted {
   border: dashed #9E9E9E 2px;
 }
+#add-content {
+  position: absolute;
+  top: 90%;
+  left: 90%;
+}
