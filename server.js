@@ -236,17 +236,16 @@ app.post('/join/course', function(req, res) {
             if (err) {
                 log('error from ' + req.url + ' = ',  err);
             } else if (course) { // yes - course exists
-                var userInCourse = { 'courseid' : course._id, 'userid' : userid };
                 // wait, are you already in the course?
-                Mongo.ops.findOne('studentsInCourses', userInCourse, function(err, doc) {
+                Mongo.ops.findOne('studentsInCourses', { 'courseid' : course._id, 'userid' : userid }, function(err, doc) {
                     if (err) {
                         log('error from ' + req.url + ' = ', err);
                     } else if (doc) {
                         log(userid + ', you\'re already in the course! GTFO');
                         res.status(400).send("You're already in this course.");
                     } else {
-                        // hmm, do you own the course?
-                        Mongo.ops.findOne('courses', userInCourse, function(err, doc) {
+                        // hmm, you might be able to join but do you own the course?
+                        Mongo.ops.findOne('courses', { '_id' : course._id, 'userid' : userid }, function(err, doc) {
                             if (err) {
                                 log('error from ' + req.url + ' = ', err);
                             } else if (doc) {
