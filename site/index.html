@@ -35,9 +35,15 @@
 </head>
 
 <body ng-app="tc" ng-controller="tcc">
+  
+  <!-- SIDE NAV -->
+  <nav class="w3-sidenav" id="sidenav">
+    <a href="#">Link 1</a>
+  </nav>
 
   <!-- TOP NAV -->
   <ul id="top-nav" class="w3-navbar w3-blue" ng-if="user.userid">
+    <li><span id="three-bars" class="w3-opennav w3-xlarge" ng-click="show('#sidenav')">&#9776;</span></li>
     <li><a href="" ng-click="home()">Home</a></li>
     <li><a href="">Link 1</a></li>
     <li><a href="">Link 2</a></li>

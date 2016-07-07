@@ -51,6 +51,10 @@ body > div {
   padding-bottom: 14px;
 }
 
+#sidenav {
+  display: none;
+}
+
 #nav-photo {
   height: 38px;
 }
@@ -89,4 +93,8 @@ input:invalid {
   position: absolute;
   top: 90%;
   left: 90%;
+}
+
+#three-bars {
+  margin-left: 20px;
 }

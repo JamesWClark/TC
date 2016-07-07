@@ -4,9 +4,10 @@
 
 var app = angular.module('tc',[]);
 
-app.controller('tcc', function($scope, $window, $http, $compile) {
+app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     
     var auth2;
+    var sidenav = false; // displays the sidenav
     
     $scope.user = {};
     
@@ -128,6 +129,10 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
         angular.element(ele).hide();
     };
     
+    $scope.show = function(ele) {
+        angular.element(ele).show();
+    };
+    
     $scope.createCourse = function() {
         log('create course = ', $scope.newCourse);
         _post('/course', $scope.newCourse, function(response) {
@@ -168,6 +173,13 @@ app.controller('tcc', function($scope, $window, $http, $compile) {
             }
         });
     };
+    
+    // called by all clicks
+    angular.element($document).click(function(e) {
+        if(e.target.id !== 'sidenav' && e.target.id !== 'three-bars') {
+            angular.element('#sidenav').hide();
+        }
+    });
     
     var _post = function(url, data, callback) {
         var permission = {
