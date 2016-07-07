@@ -121,8 +121,13 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         }
     };
     
-    $scope.home = function() {
+    var home = function() {    
         $scope.view = 'list-courses';
+        delete $scope.course;
+    };
+    
+    $scope.home = function() {
+        home();
     };
     
     $scope.hide = function(ele) {
@@ -169,6 +174,19 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
                     $scope.user.courses.push(response.data);
                     angular.element('#modal-join-course').hide();
                     $scope.formJoinCourse.$setPristine();
+                    break;
+            }
+        });
+    };
+    
+    $scope.suspendCourse = function(token) {
+        log('suspending course with token = ' + token);
+        var url = '/suspend/course';
+        _post(url, token, function(response) {
+            switch(response.status) {
+                case 201: // successfully suspended the course
+                    log('successfully suspended course = ', response.data);
+                    home();
                     break;
             }
         });

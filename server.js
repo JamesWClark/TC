@@ -126,6 +126,20 @@ Mongo.connect(mongo_url, function(err, db) {
                 }
             );
         };
+        
+        Mongo.ops.updateOne = function(collection, query, json, callback) {
+            var col = db.collection(collection);
+            col.updateOne(query
+                , { $set : json }
+                , function(err, result) {
+                    if(err) {
+                        log('error = ', err);
+                    } else {
+                        log('update ' + collection + ' = ', result);
+                    }
+                }
+            );
+        };
     }
 });
 
@@ -154,6 +168,7 @@ var errorHandler = function(err, req, res, next) {
 
 app.use(errorHandler);
 
+// this is middleware, runs every time
 var authorizeRequest = function(req, res, next) {
     log('authorize req.url = ', req.url);
     if(req.body && req.body.a) {
@@ -294,6 +309,21 @@ app.post('/join/course', function(req, res) {
         });
     } else {
         res.status(400).send('');
+    }
+});
+
+app.post('/suspend/course', function(req, res) {
+    if(req.body && req.body.a && req.body.d) {
+        log('suspend course with token = ', req.body.d);
+        var query = { 'joinToken' : req.body.d };
+        var json = { 'suspend' : true };
+        Mongo.ops.updateOne('courses', query, json, function(err, res) {
+            if(err) {
+                log('error = ', err);
+            } else {
+                log('result = ', res);
+            }
+        });
     }
 });
 
