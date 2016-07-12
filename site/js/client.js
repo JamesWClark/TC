@@ -183,11 +183,22 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         log('suspending course with token = ' + token);
         var url = '/suspend/course';
         _post(url, token, function(response) {
+            log('suspendCourse status = ', response.status);
             switch(response.status) {
                 case 201: // successfully suspended the course
-                    log('successfully suspended course = ', response.data);
+                    var joinToken = response.data;
+                    log('successfully suspended course = ', joinToken);
+                    $scope.user.courses = $scope.user.courses.filter(function(obj) {
+                        if(obj.joinToken === joinToken) {
+                            log('splicing course with joinToken = ', joinToken);
+                        }
+                        return obj.joinToken !== joinToken;
+                    });
                     home();
+                    log('$scope.user.courses = ', $scope.user.courses);
                     break;
+                case 400:
+                    log('suspendCourse 400 error = ', response);
             }
         });
     };
@@ -199,6 +210,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         }
     });
     
+    // generic http post
     var _post = function(url, data, callback) {
         var permission = {
             userid : $scope.user.userid,

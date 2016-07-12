@@ -98,3 +98,7 @@ input:invalid {
 #three-bars {
   margin-left: 20px;
 }
+
+#add-content-plus-button {
+  font-family: monospace;
+}

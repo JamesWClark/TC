@@ -136,7 +136,9 @@ Mongo.connect(mongo_url, function(err, db) {
                         log('error = ', err);
                     } else {
                         log('update ' + collection + ' = ', result);
+                        
                     }
+                    if(callback) callback(err, result);
                 }
             );
         };
@@ -314,14 +316,17 @@ app.post('/join/course', function(req, res) {
 
 app.post('/suspend/course', function(req, res) {
     if(req.body && req.body.a && req.body.d) {
-        log('suspend course with token = ', req.body.d);
+        var joinToken = req.body.d;
+        log('suspend course with token = ', joinToken);
         var query = { 'joinToken' : req.body.d };
         var json = { 'suspend' : true };
-        Mongo.ops.updateOne('courses', query, json, function(err, res) {
+        Mongo.ops.updateOne('courses', query, json, function(err, result) {
             if(err) {
                 log('error = ', err);
+                res.status(400).send('');
             } else {
-                log('result = ', res);
+                log('result = ', result);
+                res.status(201).send(joinToken);
             }
         });
     }
