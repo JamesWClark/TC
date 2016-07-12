@@ -47,7 +47,7 @@
 
   <!-- TOP NAV -->
   <ul id="top-nav" class="w3-navbar w3-blue" ng-if="user.userid">
-    <li><span id="three-bars" class="w3-opennav w3-xlarge" ng-click="show('#sidenav')">&#9776;</span></li>
+    <li><a href="" id="three-bars" class="w3-opennav w3-xlarge" ng-click="show('#sidenav')">&#9776;</a></li>
     <li><a href="" ng-click="home()">Home</a></li>
     <li><a href="">Link 1</a></li>
     <li><a href="">Link 2</a></li>
@@ -62,12 +62,14 @@
   <div id="view-course" ng-if="view === 'view-course'">
     <div class="w3-container w3-amber w3-center"><h1>{{ course.title }} &middot; {{ course.joinToken }}</h1></div>
     <div id="add-content" ng-if="user.superadmin === true">
-      <ul>
-        <li>A</li>
-        <li>B</li>
-        <li>C</li>
-      </ul>
-      <a id="add-content-plus-button" class="w3-btn-floating-large w3-green">+</a>
+      <div class="flex middle add-content-button">
+        <div class="x3">Programming Task</div>
+        <div class="x1"><a class="w3-btn-floating-large w3-green"><img class="svg-margin-bottom-2" src="img/terminal.svg"></a></div>
+      </div>
+      <div class="flex">
+        <div class="x3">&nbsp;</div>
+        <div class="x1"><a id="add-content-plus-button" class="w3-btn-floating-large w3-green" ng-mouseover="show('.add-content-button')">+</a></div>
+      </div>
     </div>
   </div>
   

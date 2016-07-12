@@ -96,9 +96,18 @@ input:invalid {
 }
 
 #three-bars {
-  margin-left: 20px;
+  height: 38px;
+  padding: 0 16px 0 16px;
 }
 
 #add-content-plus-button {
   font-family: monospace;
+}
+
+.svg-margin-bottom-2 {
+  margin-bottom: -1px;
+}
+
+.add-content-button {
+  visibility: hidden;
 }
