@@ -135,7 +135,6 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     };
     
     $scope.show = function(ele) {
-        angular.element(ele).css('visibility', 'visible');   
         angular.element(ele).show();
     };
     
@@ -210,16 +209,6 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
             angular.element('#sidenav').hide();
         }
     });
-    
-    // show or hide the add content buttons
-    angular.element('#add-content-plus-button, .add-content-button:visible').hover(
-        function() { // mouse enter
-
-        },
-        function() { // mouse leave
-            
-        }
-    );
     
     // generic http post
     var _post = function(url, data, callback) {

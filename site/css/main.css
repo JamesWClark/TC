@@ -108,6 +108,12 @@ input:invalid {
   margin-bottom: -1px;
 }
 
-.add-content-button {
-  visibility: hidden;
+
+
+#add-content-buttons-container:hover {
+  visibility: visible;
+}
+
+.margin-right-8 {
+  margin-right: 8px;
 }

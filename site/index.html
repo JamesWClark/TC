@@ -62,13 +62,19 @@
   <div id="view-course" ng-if="view === 'view-course'">
     <div class="w3-container w3-amber w3-center"><h1>{{ course.title }} &middot; {{ course.joinToken }}</h1></div>
     <div id="add-content" ng-if="user.superadmin === true">
-      <div class="flex middle add-content-button">
-        <div class="x3">Programming Task</div>
-        <div class="x1"><a class="w3-btn-floating-large w3-green"><img class="svg-margin-bottom-2" src="img/terminal.svg"></a></div>
+      <div id="add-content-buttons-container">
+        <div class="flex middle add-content-button">
+          <div class="x3 right margin-right-8">Web Snippet</div>
+          <div class="x1"><a class="w3-btn-floating-large w3-green"><img class="svg-margin-bottom-2" src="img/code.svg"></a></div>
+        </div>
+        <div class="flex middle add-content-button">
+          <div class="x3 right margin-right-8">Programming Task</div>
+          <div class="x1"><a class="w3-btn-floating-large w3-green"><img class="svg-margin-bottom-2" src="img/terminal.svg"></a></div>
+        </div>
       </div>
       <div class="flex">
         <div class="x3">&nbsp;</div>
-        <div class="x1"><a id="add-content-plus-button" class="w3-btn-floating-large w3-green" ng-mouseover="show('.add-content-button')">+</a></div>
+        <div class="x1"><a id="add-content-plus-button" class="w3-btn-floating-large w3-green">+</a></div>
       </div>
     </div>
   </div>
