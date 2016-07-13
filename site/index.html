@@ -35,15 +35,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.3/ace.js" charset="utf-8"></script>
   <script src="js/client.js"></script>
   <script src="https://apis.google.com/js/platform.js?onload=appStart" async defer></script>
-  <style type="text/css" media="screen">
-      #editor { 
-          position: absolute;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          left: 0;
-      }
-  </style>
 </head>
 
 <body ng-app="tc" ng-controller="tcc">
@@ -189,7 +180,7 @@
         <span class="w3-closebtn" ng-click="hide('#modal-create-programming-task')">&times;</span>
         <h1>Create a Programming Task</h1>
       </div>
-      <div class="w3-container ace-container">
+      <div class="w3-container margin-0 padding-0">
         <textarea id="tinymce-create-programming-task"></textarea>
       </div>
       <div class="w3-container w3-padding-top w3-padding-bottom">

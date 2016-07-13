@@ -123,8 +123,3 @@ input:invalid {
 .add-content-button {
   cursor: pointer;
 }
-
-.ace-container {
-  position: relative;
-  height: 350px;
-}
