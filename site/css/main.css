@@ -12,6 +12,9 @@ body > div {
   flex: 1;
 }
 
+.margin-0 { margin: 0; }
+.padding-0 { padding: 0; }
+
 #smile {
   width: 30%;
 }
@@ -116,4 +119,12 @@ input:invalid {
 
 .margin-right-8 {
   margin-right: 8px;
+}
+.add-content-button {
+  cursor: pointer;
+}
+
+.ace-container {
+  position: relative;
+  height: 350px;
 }

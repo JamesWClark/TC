@@ -30,8 +30,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.5.5/angular.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.13.0/moment.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/4.4.0/tinymce.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/processing.js/1.6.0/processing.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.3/ace.js" charset="utf-8"></script>
   <script src="js/client.js"></script>
   <script src="https://apis.google.com/js/platform.js?onload=appStart" async defer></script>
+  <style type="text/css" media="screen">
+      #editor { 
+          position: absolute;
+          top: 0;
+          right: 0;
+          bottom: 0;
+          left: 0;
+      }
+  </style>
 </head>
 
 <body ng-app="tc" ng-controller="tcc">
@@ -63,11 +75,11 @@
     <div class="w3-container w3-amber w3-center"><h1>{{ course.title }} &middot; {{ course.joinToken }}</h1></div>
     <div id="add-content" ng-if="user.superadmin === true">
       <div id="add-content-buttons-container">
-        <div class="flex middle add-content-button">
+        <div class="flex middle add-content-button" ng-click="getModal('create-web-snippet')">
           <div class="x3 right margin-right-8">Web Snippet</div>
           <div class="x1"><a class="w3-btn-floating-large w3-green"><img class="svg-margin-bottom-2" src="img/code.svg"></a></div>
         </div>
-        <div class="flex middle add-content-button">
+        <div class="flex middle add-content-button" ng-click="getModal('create-programming-task')">
           <div class="x3 right margin-right-8">Programming Task</div>
           <div class="x1"><a class="w3-btn-floating-large w3-green"><img class="svg-margin-bottom-2" src="img/terminal.svg"></a></div>
         </div>
@@ -146,6 +158,44 @@
         <button class="w3-btn w3-green" ng-disabled="formJoinCourse.courseCode.$invalid" ng-click="joinCourse(joinToken)">Join</button>
         <button class="w3-btn w3-green" ng-click="hide('#modal-join-course')">Cancel</button>
         <span class="w3-text-red">{{ joinError }}</span>
+      </div>
+      <div class="w3-container w3-dark-grey">&nbsp;</div>
+    </div>
+  </div>
+  
+  <!-- MODAL: CREATE WEB SNIPPET -->
+  <div id="modal-create-web-snippet" class="w3-modal">
+    <div class="w3-modal-content w3-card-8" ng-form name="formCreateWebSnippet">
+      <div class="w3-container w3-dark-grey">
+        <span class="w3-closebtn" ng-click="hide('#modal-create-web-snippet')">&times;</span>
+        <h1>Create Web Snippet</h1>
+      </div>
+      <div class="w3-container padding-0 margin-0">
+        <textarea id="tinymce-create-web-snippet"></textarea>
+      </div>
+      <div class="w3-container w3-padding-top w3-padding-bottom">
+        <button class="w3-btn w3-green" ng-click="createWebSnippit()">Create</button>
+        <button class="w3-btn w3-green" ng-click="hide('#modal-create-web-snippet')">Cancel</button>
+        <span class="w3-text-red">Error Placeholder</span>
+      </div>
+      <div class="w3-container w3-dark-grey">&nbsp;</div>
+    </div>
+  </div>
+  
+  <!-- MODAL: CREATE PROGRAMMING TASK -->
+  <div id="modal-create-programming-task" class="w3-modal">
+    <div class="w3-modal-content w3-card-8" ng-form name="formCreateProgrammingTask">
+      <div class="w3-container w3-dark-grey">
+        <span class="w3-closebtn" ng-click="hide('#modal-create-programming-task')">&times;</span>
+        <h1>Create a Programming Task</h1>
+      </div>
+      <div class="w3-container ace-container">
+        <textarea id="tinymce-create-programming-task"></textarea>
+      </div>
+      <div class="w3-container w3-padding-top w3-padding-bottom">
+        <button class="w3-btn w3-green" ng-click="createProgrammingTask()">Create</button>
+        <button class="w3-btn w3-green" ng-click="hide('#modal-create-programming-task')">Cancel</button>
+        <span class="w3-text-red">Error Placeholder</span>
       </div>
       <div class="w3-container w3-dark-grey">&nbsp;</div>
     </div>

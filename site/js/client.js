@@ -115,8 +115,16 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
                 angular.element('#modal-create-course').show();
                 break;
             case 'join-course':
-                log('get modal-join-course called');
+                log('get modal-join-course');
                 angular.element('#modal-join-course').show();
+                break;
+            case 'create-web-snippet':
+                log('get modal-create-web-snippet')
+                angular.element('#modal-create-web-snippet').show();
+                break;
+            case 'create-programming-task':
+                log('get modal-create-programming-task');
+                angular.element('#modal-create-programming-task').show();
                 break;
         }
     };
@@ -202,6 +210,16 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
             }
         });
     };
+   
+    $scope.createWebSnippit = function() {
+        log('creating web snippet');
+        log(tinymce.activeEditor.getContent());
+
+    };
+    
+    $scope.createProgrammingTask = function() {
+        log('creating programming task')
+    };
     
     // called by all clicks
     angular.element($document).click(function(e) {
@@ -233,5 +251,33 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     
     angular.element('.datepicker').datepicker();
     angular.element('input').attr('autocomplete','off');
+    
+    // initialize tinymce - web snippet
+    tinymce.init({
+        selector: '#tinymce-create-web-snippet',
+        height: 375,
+        plugins: [
+            'advlist autolink lists link image charmap print preview anchor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table contextmenu paste code'
+        ],
+        toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image'
+    });
+    
+    // initialize tinymce - programming task
+    tinymce.init({
+        selector: '#tinymce-create-programming-task',
+        height: 375,
+        plugins: [
+            'advlist autolink lists link image charmap print preview anchor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table contextmenu paste code'
+        ],
+        toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image'
+    });
+
+    //var editor = ace.edit("editor");
+    //editor.setTheme("ace/theme/monokai");
+    //editor.getSession().setMode("ace/mode/javascript");
 
 });
