@@ -275,9 +275,10 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         ],
         toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image'
     });
-
-    //var editor = ace.edit("editor");
-    //editor.setTheme("ace/theme/monokai");
-    //editor.getSession().setMode("ace/mode/javascript");
+    
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/chrome");
+    //editor.setFontSize(16);
+    editor.getSession().setMode("ace/mode/java");
 
 });
