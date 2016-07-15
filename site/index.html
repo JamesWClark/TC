@@ -173,15 +173,23 @@
         <span class="w3-closebtn" ng-click="hide('#modal-create-programming-task')">&times;</span>
         <h1>Create a Programming Task</h1>
       </div>
-      <div class="w3-container">
-        <h2>Instructions</h2>
-        <textarea id="tinymce-create-programming-task"></textarea>
-        <h2>Starter Code (If Necessary)</h2>
-        <div id="ace-container">
-          <div id="editor">function foo(items) {
-    var x = "All this is syntax highlighted";
-    return x;
-}</div>     
+      <div class="w3-container w3-padding-top w3-padding-bottom">
+        <label><strong>Task Title</strong></label>
+        <span class="w3-text-red" ng-show="formCreateProgrammingTask.title.$dirty && formCreateProgrammingTask.title.$invalid">
+          <span ng-show="formCreateProgrammingTask.title.$error.required">Required</span>
+        </span>
+        <input name="title" class="w3-input" type="text" placeholder="Enter Task Name" ng-model="newProgrammingTask.title" required>
+      </div>
+      <div class="w3-container padding-0 margin-0">
+        <ul class="w3-navbar w3-black">
+          <li ng-click="mpt_step(0)"><a class="active" href="">Instructions</a></li>
+          <li ng-click="mpt_step(1)"><a href="">Starter Code</a></li>
+        </ul>
+        <div id="mpt-0" class="modal-tabbed-content">
+          <textarea id="tinymce-create-programming-task"></textarea>
+        </div>
+        <div id="mpt-1" class="modal-tabbed-content">
+          <div id="editor"></div>
         </div>
       </div>
       <div class="w3-container w3-padding-top w3-padding-bottom">

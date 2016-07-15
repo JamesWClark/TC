@@ -218,7 +218,19 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     };
     
     $scope.createProgrammingTask = function() {
-        log('creating programming task')
+        log('creating programming task = ', $scope.newProgrammingTask);
+    };
+    
+    // manage tabs for modal-create-programming-task
+    $scope.mpt_step = function(n) {
+        var numTabs = 2;
+        for(var i = 0; i < numTabs; i++) {
+            if(i !== n) {
+                $scope.hide('#mpt-' + i);
+            } else {
+                $scope.show('#mpt-' + i);                
+            }
+        }
     };
     
     // called by all clicks
@@ -264,7 +276,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image'
     });
     
-    // initialize tinymce - programming task
+    // initialize tinymce in modal-create-programming-task instructions
     tinymce.init({
         selector: '#tinymce-create-programming-task',
         height: 375,
@@ -276,9 +288,11 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image'
     });
     
+    // set ace editor in modal-create-programming-task
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/chrome");
-    //editor.setFontSize(16);
     editor.getSession().setMode("ace/mode/java");
 
+    // unhide the first tab on modal-create-programming-task
+    $scope.mpt_step(0);
 });
