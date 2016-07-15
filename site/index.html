@@ -182,8 +182,8 @@
       </div>
       <div class="w3-container padding-0 margin-0">
         <ul class="w3-navbar w3-black">
-          <li ng-click="mpt_step(0)"><a class="active" href="">Instructions</a></li>
-          <li ng-click="mpt_step(1)"><a href="">Starter Code</a></li>
+          <li ng-click="mpt_step(0)"><a id="mpt_tab0" href="">Instructions</a></li>
+          <li ng-click="mpt_step(1)"><a id="mpt_tab1" href="">Starter Code</a></li>
         </ul>
         <div id="mpt-0" class="modal-tabbed-content">
           <textarea id="tinymce-create-programming-task"></textarea>
@@ -193,7 +193,7 @@
         </div>
       </div>
       <div class="w3-container w3-padding-top w3-padding-bottom">
-        <button class="w3-btn w3-green" ng-click="createProgrammingTask()">Create</button>
+        <button class="w3-btn w3-green" ng-disabled="formCreateProgrammingTask.title.$invalid || formCreateProgrammingTask.instructions.$invalid" ng-click="createProgrammingTask()">Create</button>
         <button class="w3-btn w3-green" ng-click="hide('#modal-create-programming-task')">Cancel</button>
         <span class="w3-text-red">Error Placeholder</span>
       </div>

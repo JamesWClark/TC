@@ -9,6 +9,11 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     var auth2;
     var sidenav = false; // displays the sidenav
     
+    // set ace editor in modal-create-programming-task
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/chrome");
+    editor.getSession().setMode("ace/mode/java");
+    
     $scope.user = {};
     
     var log = function(msg, obj) {
@@ -227,9 +232,16 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         for(var i = 0; i < numTabs; i++) {
             if(i !== n) {
                 $scope.hide('#mpt-' + i);
+                angular.element('#mpt_tab' + i).removeClass('active');
             } else {
-                $scope.show('#mpt-' + i);                
+                $scope.show('#mpt-' + i);
+                angular.element('#mpt_tab' + i).addClass('active');
             }
+        }
+        if(angular.element('#mpt_tab1').hasClass('active')) {
+            editor.focus();
+        } else if (angular.element('#mpt_tab0').hasClass('active')) {
+            tinymce.execCommand('mceFocus',false,'tinymce-create-programming-task');
         }
     };
     
@@ -287,11 +299,6 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         ],
         toolbar: 'insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image'
     });
-    
-    // set ace editor in modal-create-programming-task
-    var editor = ace.edit("editor");
-    editor.setTheme("ace/theme/chrome");
-    editor.getSession().setMode("ace/mode/java");
 
     // unhide the first tab on modal-create-programming-task
     $scope.mpt_step(0);
