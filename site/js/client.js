@@ -11,7 +11,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     
     // set ace editor in modal-create-programming-task
     var editor = ace.edit("editor");
-    editor.setTheme("ace/theme/chrome");
+    editor.setTheme("ace/theme/clouds");
     editor.getSession().setMode("ace/mode/java");
     
     $scope.user = {};
@@ -218,12 +218,23 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
    
     $scope.createWebSnippit = function() {
         log('creating web snippet');
-        log(tinymce.activeEditor.getContent());
-
+        log(tinymce.activeEditor.getContent()); //#tinymce-create-web-snippet
     };
     
     $scope.createProgrammingTask = function() {
-        log('creating programming task = ', $scope.newProgrammingTask);
+        var task = $scope.newProgrammingTask;
+        task.instructions = tinymce.get('tinymce-create-programming-task').getContent();
+        task.starterCode = editor.getValue();
+        log('create programming task = ', task);
+        _post('/create/programmingtask', task, function(response) {
+            angular.element('#modal-create-programming-task').hide();
+            $scope.formCreateProgrammingTask.$setPristine();
+            $scope.newProgrammingTask = {};
+            tinymce.get('tinymce-create-programming-task').setContent('');
+            editor.setValue('');
+            $scope.mpt_step(0);
+            log('created programming task = ', response.data);
+        });
     };
     
     // manage tabs for modal-create-programming-task
