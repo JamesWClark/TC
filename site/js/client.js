@@ -12,7 +12,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     // set ace editor in modal-create-programming-task
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/clouds");
-    editor.getSession().setMode("ace/mode/java");
+    editor.getSession().setMode("ace/mode/processing");
     
     $scope.user = {};
     
