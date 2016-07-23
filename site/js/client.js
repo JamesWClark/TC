@@ -20,7 +20,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     var editor = ace.edit("editor");
     editor.setTheme("ace/theme/sqlserver");
     editor.getSession().setMode("ace/mode/processing");
-    
+    editor.$blockScrolling = Infinity;
     $scope.user = {};
     
     // log to prevent circular reference
