@@ -6,6 +6,13 @@ var app = angular.module('tc',[]);
 
 app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     
+    document.cookie = 'ppkcookie1=testcookie; expires=Sat, 23 Jul 2016 20:47:11 UTC; path=/';
+    var a = document.cookie.split(';');
+    
+    for(var i = 0; i < a.length; i++) {
+        console.log(a[i]);
+    }
+    
     var auth2;
     var sidenav = false; // displays the sidenav
     
@@ -16,6 +23,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     
     $scope.user = {};
     
+    // log to prevent circular reference
     var log = function(msg, obj) {
         console.log('\n');
         if(obj) {
@@ -225,6 +233,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         var task = $scope.newProgrammingTask;
         task.instructions = tinymce.get('tinymce-create-programming-task').getContent();
         task.starterCode = editor.getValue();
+        task.courseid = $scope.course._id;
         log('create programming task = ', task);
         _post('/create/programmingtask', task, function(response) {
             angular.element('#modal-create-programming-task').hide();

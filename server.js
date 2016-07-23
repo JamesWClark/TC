@@ -351,6 +351,20 @@ app.post('/course', function(req, res) {
     }
 });
 
+app.post('/create/programmingtask', function(req, res) {
+    if(req.body && req.body.a && req.body.d) {
+        var auth = req.body.a;
+        var task = req.body.d;
+        
+        log('task = ', task);
+        
+        Mongo.ops.insert('tasks', task);
+        res.status(201).send(task);
+    } else {
+        res.status(400).send('');
+    }
+});
+
 https.createServer(credentials, app).listen(443);
 
 // only redirect the home page. 403 forbid all others
