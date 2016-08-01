@@ -6,13 +6,6 @@ var app = angular.module('tc',[]);
 
 app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     
-    document.cookie = 'ppkcookie1=testcookie; expires=Sat, 23 Jul 2016 20:47:11 UTC; path=/';
-    var a = document.cookie.split(';');
-    
-    for(var i = 0; i < a.length; i++) {
-        console.log(a[i]);
-    }
-    
     var auth2;
     var sidenav = false; // displays the sidenav
     
@@ -175,6 +168,11 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         log('view course = ', course);
 		$scope.course = course;
 		$scope.view = 'view-course';
+        
+        var url = '/course/tasks?cid=' + course._id;
+        _get(url, function(response) {
+            
+        });
     };
     
     $scope.joinCourse = function(token) {
@@ -223,7 +221,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
             }
         });
     };
-   
+    
     $scope.createWebSnippit = function() {
         log('creating web snippet');
         log(tinymce.activeEditor.getContent()); //#tinymce-create-web-snippet
@@ -271,26 +269,36 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
             angular.element('#sidenav').hide();
         }
     });
-    
+        
     // generic http post
     var _post = function(url, data, callback) {
-        var permission = {
-            userid : $scope.user.userid,
-            idToken : $scope.user.idToken
-        };
-        var authdata = {
-            a : permission,
-            d : data
-        };
-        $http.post(url, authdata).then(
-        function onSuccess(response) {
-            log('_post success = ', response);
-            callback(response);
-        },
-        function onError(error) {
-            log('_post error = ', error);
-            callback(error);
-        });
+        var userid = $scope.user.userid;
+        var idToken = $scope.user.idToken;
+        var params = '?userid=' + userid + '&idToken=' + idToken; 
+        url = url + params;
+        $http.post(url, data).then(
+            function onSuccess(response) {
+                log('_post success = ', response);
+                callback(response);
+            },
+            function onError(error) {
+                log('_post error = ', error);
+                callback(error);
+            }
+        );
+    };
+    
+    var _get = function(url, callback) {
+        $http.get(url).then(
+            function onSuccess(response) {
+                log('_get success = ', response);
+                callback(response);
+            },
+            function onError(error) {
+                log('_get error = ', error);
+                callback(error);
+            }
+        );
     };
     
     angular.element('.datepicker').datepicker();

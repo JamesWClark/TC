@@ -9,20 +9,23 @@ var DOMAIN = 'local.info';
 var COURSE_JOIN_TOKEN_LENGTH = 8;
 var CLIENT_ID = '342876179484-j1svlvjorpa0bptu960gj208psn9r71t.apps.googleusercontent.com';
 
-var fs = require('fs');
-var http = require('http');
-var https = require('https');
-var Mongo = require('mongodb').MongoClient;
-var helmet = require('helmet');
-var moment = require('moment');
-var express = require('express');
-var request = require('request');
+var fs         = require('fs');
+var jws        = require('jws');
+var jwt        = require('jsonwebtoken');
+var http       = require('http');
+var https      = require('https');
+var Mongo      = require('mongodb').MongoClient;
+var helmet     = require('helmet');
+var moment     = require('moment');
+var express    = require('express');
+var request    = require('request');
+var jwkToPem   = require('jwk-to-pem');
 var bodyParser = require('body-parser');
 
 var app = express();
 
 var credentials = {
-    key: fs.readFileSync('bin/key.pem'),
+    key:  fs.readFileSync('bin/key.pem'),
     cert: fs.readFileSync('bin/cert.pem')
 };
 
@@ -170,23 +173,17 @@ var errorHandler = function(err, req, res, next) {
 
 app.use(errorHandler);
 
-// this is middleware, runs every time
+// middleware: authorize every request - requires params: `userid` and `idToken`
 var authorizeRequest = function(req, res, next) {
     log('authorize req.url = ', req.url);
-    if(req.body && req.body.a) {
-        log('ok: req has body & auth');
-        var auth = req.body.a;
+    if(req.body && req.query && req.query.userid && req.query.idToken) {
+        log('ok: authorizeRequest has body and query params');
+        var userid = req.query.userid;
+        var idToken = req.query.idToken;
         
-        // first, is this token expired?
-        var now = moment();
-        var expiration = moment(auth.expiresAt);
-        if(now.isAfter(expiration)) {
-            // get a refresh token
-        }
-
         // validate the token with Google
-        log("ok: let's check with Google: https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + auth.idToken);
-        request('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + auth.idToken, function(err, res, body) {
+        log("ok: let's check with Google: https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + idToken);
+        request('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + idToken, function(err, res, body) {
             if(err) {
                 log('error while validating a user id_token with Google = ', err);
                 next(err);
@@ -194,24 +191,72 @@ var authorizeRequest = function(req, res, next) {
                 var reply = JSON.parse(body);
                 log('ok: Googles reply = ', reply);
 
+                var iss = reply.iss;
+                var aud = reply.aud;
+                var kid = reply.kid;
+                var alg = reply.alg;
+                
+                // links
+                // https://www.googleapis.com/oauth2/v3/certs
+                // https://www.googleapis.com/oauth2/v1/certs
+                // https://accounts.google.com/.well-known/openid-configuration
+                // http://ncona.com/2015/02/consuming-a-google-id-token-from-a-server/
+                // https://github.com/Brightspace/node-jwk-to-pem
+                // https://github.com/brianloveswords/node-jws
+                
                 //Once you get these claims, you still need to check that the aud claim contains one of your app's client IDs.
                 //If it does, then the token is both valid and intended for your client, and you can safely retrieve and use 
                 //the user's unique Google ID from the sub claim.
                 //https://developers.google.com/identity/sign-in/web/backend-auth#calling-the-tokeninfo-endpoint
+
+                // TODO: verify the following
+                // -The ID token is properly signed by Google. Use Google's public keys (available in JWK or PEM format) to verify the token's signature.
+                // -If your authentication request specified a hosted domain, the ID token has a hd claim that matches your Google Apps hosted domain.
                 
-                if(reply.aud === CLIENT_ID) {
+                // for verifying the JWK or PEM, see:
+                // http://ncona.com/2015/02/consuming-a-google-id-token-from-a-server/
+                request('https://accounts.google.com/.well-known/openid-configuration', function(err, res, body) {
+                    if(err) {
+                        log('google openid.jwks err = ', err);
+                    } else {
+                        
+                        // try catch something here - all kinds of bad data could pass through here
+                        // use express error middleware?
+                        var jwks = JSON.parse(body);
+                        var jwks_uri = jwks.jwks_uri;
+                        request(jwks_uri, function(err, res, body) {
+                            var keys = JSON.parse(body).keys;
+                            var jwk = keys.filter(function(key) {
+                                return key.kid === kid;
+                            })[0];
+                            var pem = jwkToPem(jwk);
+                            var verify = jws.verify(idToken, alg, pem);
+                            log('keys = ', keys);
+                            log('jwk = ', jwk);
+                            log('pem = ', pem);
+                            log('valid = ', jwt.verify(idToken, pem)); // do i need this?
+                            log('verify = ', verify);
+                            
+                        });
+                    }
+                });
+                        
+                log('iss = ', iss);
+                log('aud = ', aud);
+
+                if((iss === 'accounts.google.com' || iss === 'https://accounts.google.com') && aud === CLIENT_ID) {
                     log('ok: you may proceed');
-                    next();
+                    next();                    
                 } else {
                     log('fail: failed Google token validation');
                     next({ 'status' : 401, 'msg' : 'failed Google token validation' });
                 }
             } else {
-                next('#!@#$');
+                next('#!@#$'); // not sure WTF
             }
         });
     } else {
-        log('fail: body or auth is missing');
+        log('fail: body or query params are missing');
         next({ 'status' : 401, 'msg' : 'not authorized' });
     }
 };
@@ -348,6 +393,13 @@ app.post('/course', function(req, res) {
         res.status(201).send(course);
     } else {
         res.status(400).send('');
+    }
+});
+
+app.get('/course/tasks', function(req, res) {
+    if(req.query && req.query.cid) {
+        log('cid = ' + req.body.cid);
+        res.status(200).send('got cid ok');
     }
 });
 
