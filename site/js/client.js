@@ -5,7 +5,7 @@
 var app = angular.module('tc',[]);
 
 app.controller('tcc', function($scope, $window, $http, $compile, $document) {
-    
+
     var auth2;
     var sidenav = false; // displays the sidenav
     
@@ -76,6 +76,11 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
             $scope.user.domain      = googleUser.getHostedDomain();
             $scope.user.idToken     = authResponse.id_token;
             $scope.user.expiresAt   = authResponse.expires_at;
+            $scope.user.httpconfig  = {
+                headers : {
+                    'Authorization' : authResponse.id_token
+                }
+            };
             $scope.$digest();
             
             log('authResponse = ', authResponse);
@@ -169,7 +174,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
 		$scope.course = course;
 		$scope.view = 'view-course';
         
-        var url = '/course/tasks?cid=' + course._id;
+        var url = '/course/tasks';
         _get(url, function(response) {
             
         });
@@ -271,12 +276,15 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     });
         
     // generic http post
-    var _post = function(url, data, callback) {
-        var userid = $scope.user.userid;
-        var idToken = $scope.user.idToken;
-        var params = '?userid=' + userid + '&idToken=' + idToken; 
-        url = url + params;
-        $http.post(url, data).then(
+    var _post = function(u, d, callback) {
+        $http({
+            url : u,
+            method : 'POST',
+            data : d,
+            headers : {
+                'Authorization' : $scope.user.idToken
+            }
+        }).then(
             function onSuccess(response) {
                 log('_post success = ', response);
                 callback(response);
@@ -289,7 +297,13 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     };
     
     var _get = function(url, callback) {
-        $http.get(url).then(
+        var config = $scope.user.httpconfig;
+        $http.get({
+            url : url,
+            headers : {
+                'Authorization' : $scope.user.idToken
+            }
+        }).then(
             function onSuccess(response) {
                 log('_get success = ', response);
                 callback(response);

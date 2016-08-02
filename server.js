@@ -176,11 +176,13 @@ app.use(errorHandler);
 // middleware: authorize every request - requires params: `userid` and `idToken`
 var authorizeRequest = function(req, res, next) {
     log('authorize req.url = ', req.url);
-    if(req.body && req.query && req.query.userid && req.query.idToken) {
+    if(req.body) {
         log('ok: authorizeRequest has body and query params');
-        var userid = req.query.userid;
-        var idToken = req.query.idToken;
         
+        log('headers = ', req.headers);
+
+        var idToken = req.headers.authorization;
+        log('idtoken from headers = ' + idToken);
         // validate the token with Google
         log("ok: let's check with Google: https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + idToken);
         request('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + idToken, function(err, res, body) {
