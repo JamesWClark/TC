@@ -255,7 +255,7 @@ app.use('/user/:id',
 );
 
 app.post('/signin', function(req, res) {
-    var user = req.body.d;
+    var user = req.body;
     log('received user = ', user);
     if(false) { // test with any account
     //if(domains.indexOf(user.domain) === -1) { // domain not approved
