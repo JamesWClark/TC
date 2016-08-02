@@ -169,9 +169,9 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
 		$scope.course = course;
 		$scope.view = 'view-course';
         
-        var url = '/course/tasks';
+        var url = '/course/tasks?cid=' + course._id;
         _get(url, function(response) {
-            
+            log('get tasks = ', response);
         });
     };
     
