@@ -61,6 +61,13 @@ var log = function(msg, obj) {
     }
 };
 
+// pull the userid from idtoken in authorization header
+var getUserId = function(req) {
+    var idToken = req.headers.authorization;
+    return jwt.decode(idToken).sub; // ex json: http://www.jsonmate.com/permalink/57a0b6b84fef248c399c5de0
+};
+
+// generate a join token for courses
 var generateJoinToken = function(length) {
     var token = '';
     for(var i = 0; i < length; i++) {
@@ -70,6 +77,7 @@ var generateJoinToken = function(length) {
     return token;
 };
 
+// mongodb operations
 Mongo.connect(mongo_url, function(err, db) {
     
     if(err) {
@@ -148,6 +156,7 @@ Mongo.connect(mongo_url, function(err, db) {
     }
 });
 
+// helmet stuff
 app.use(helmet.noCache());
 app.use(helmet.frameguard());
 app.use(helmet.noSniff());
@@ -156,11 +165,14 @@ app.use(helmet.hsts({
     includeSubdomains: true
 }));
 
+// static file serving
 app.use('/', express.static(__dirname + '/site'));
 
+// body parsing ensures req.body property
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+// error handling middleware
 var errorHandler = function(err, req, res, next) {
     if(err.status) {
         res.status(err.status);
@@ -176,7 +188,7 @@ app.use(errorHandler);
 // middleware: authorize every request by validating an idToken issued by google
 var authorizeRequest = function(req, res, next) {
     log('authorizing request from url = ', req.url);
-    if(req.body) {
+    if(req.body && req.headers && req.headers.authorization) {
         var idToken = req.headers.authorization;
         var decodedToken = jwt.decode(idToken, { complete : true });  // ex: http://www.jsonmate.com/permalink/57a0372c4fef248c399c5dd6        
         var keyID = decodedToken.header.kid;
@@ -216,10 +228,9 @@ var authorizeRequest = function(req, res, next) {
                             log('fail: idToken validation error = ', err);
                             next({ 'status' : 401, 'msg' : 'failed Google id_token validation' });
                         } else {
+                            var authorized = jws.verify(idToken, algorithm, pem); // true or false
                             log('decoded idToken = ', decoded);
                             log('authorized = ', authorized);
-
-                            var authorized = jws.verify(idToken, algorithm, pem); // true or false
                             if(authorized) {
                                 log('ok: idToken authorized');
                                 next();
@@ -241,19 +252,18 @@ var authorizeRequest = function(req, res, next) {
 app.use(authorizeRequest);
 
 // test stub
-app.use('/user/:id',
-        
+app.use('/user/:id',   
     function(req, res, next) {
         console.log('Request URL:', req.originalUrl);
         next();
     },
-
     function (req, res, next) {
         console.log('Request Type:', req.method);
         next();
     }
 );
 
+// a user signs in with google web login
 app.post('/signin', function(req, res) {
     var user = req.body;
     log('received user = ', user);
@@ -277,123 +287,112 @@ app.post('/signin', function(req, res) {
                 courses: docs,
                 options: opts
             };
-            res.status(201).send(data);
+            res.status(201).send(data); // i could sign my own auth tokens and send them in the authorization header instead
         });
     }
 });
 
+// join a course
 app.post('/join/course', function(req, res) {
-    if(req.body && req.body.a && req.body.d) {
-        var token = req.body.d;
-        var userid = req.body.a.userid;
-        log('attempting to join course with token = ', token);
-        
-        // first, does the course even exist?
-        Mongo.ops.findOne('courses', { 'joinToken' : token }, function(err, course) {
-            if (err) {
-                log('error from ' + req.url + ' = ',  err);
-            } else if (course) { // yes - course exists
-                // wait, are you already in the course?
-                Mongo.ops.findOne('studentsInCourses', { 'courseid' : course._id, 'userid' : userid }, function(err, doc) {
-                    if (err) {
-                        log('error from ' + req.url + ' = ', err);
-                    } else if (doc) {
-                        log(userid + ', you\'re already in the course! GTFO');
-                        res.status(400).send("You're already in this course.");
-                    } else {
-                        // hmm, you might be able to join but do you own the course?
-                        Mongo.ops.findOne('courses', { '_id' : course._id, 'userid' : userid }, function(err, doc) {
-                            if (err) {
-                                log('error from ' + req.url + ' = ', err);
-                            } else if (doc) {
-                                log(userid + ' wait, you ARE the owner :S');
-                                res.status(400).send("You can't join your own course");
-                            } else {
-                                log('ok: you may join the course = ', course);
-                                var studentInCourse = {
-                                    'userid' : req.body.a.userid,
-                                    'courseid' : course._id
-                                };
-                                Mongo.ops.insert('studentsInCourses', studentInCourse, function(err, doc) {
-                                    if(err) {
-                                        log('fail: error joining course = ', err);
-                                    } else {
-                                        log('user ' + userid + ' joined course ' + course.title + ' with token = ' + token);
-                                        res.status(201).send(course);
-                                    }
-                                });                
-                            }
-                        });
-                    }
-                });
-            } else { // no - course not found
-                log('fail: course not found');
-                res.status(404).send('');
-            }
-        });
-    } else {
-        res.status(400).send('');
-    }
+    var token = req.body;
+    var userid = getUserId(req);
+    log('attempting to join course with token = ', token);
+
+    // first, does the course even exist?
+    Mongo.ops.findOne('courses', { 'joinToken' : token }, function(err, course) {
+        if (err) {
+            log('error from ' + req.url + ' = ',  err);
+        } else if (course) { // yes - course exists
+            // wait, are you already in the course?
+            Mongo.ops.findOne('studentsInCourses', { 'courseid' : course._id, 'userid' : userid }, function(err, doc) {
+                if (err) {
+                    log('error from ' + req.url + ' = ', err);
+                } else if (doc) {
+                    log(userid + ', you\'re already in the course! GTFO');
+                    res.status(400).send("You're already in this course.");
+                } else {
+                    // hmm, you might be able to join but do you own the course?
+                    Mongo.ops.findOne('courses', { '_id' : course._id, 'userid' : userid }, function(err, doc) {
+                        if (err) {
+                            log('error from ' + req.url + ' = ', err);
+                        } else if (doc) {
+                            log(userid + ' wait, you ARE the owner :S');
+                            res.status(400).send("You can't join your own course");
+                        } else {
+                            log('ok: you may join the course = ', course);
+                            var studentInCourse = {
+                                'userid' : req.body.a.userid,
+                                'courseid' : course._id
+                            };
+                            Mongo.ops.insert('studentsInCourses', studentInCourse, function(err, doc) {
+                                if(err) {
+                                    log('fail: error joining course = ', err);
+                                } else {
+                                    log('user ' + userid + ' joined course ' + course.title + ' with token = ' + token);
+                                    res.status(201).send(course);
+                                }
+                            });                
+                        }
+                    });
+                }
+            });
+        } else { // no - course not found
+            log('fail: course not found');
+            res.status(404).send('');
+        }
+    });
 });
 
+// suspend a course
 app.post('/suspend/course', function(req, res) {
-    if(req.body && req.body.a && req.body.d) {
-        var joinToken = req.body.d;
-        log('suspend course with token = ', joinToken);
-        var query = { 'joinToken' : req.body.d };
-        var json = { 'suspend' : true };
-        Mongo.ops.updateOne('courses', query, json, function(err, result) {
-            if(err) {
-                log('error = ', err);
-                res.status(400).send('');
-            } else {
-                log('result = ', result);
-                res.status(201).send(joinToken);
-            }
-        });
-    }
+    var joinToken = req.body;
+    log('suspend course with token = ', joinToken);
+    var query = { 'joinToken' : joinToken };
+    var json = { 'suspend' : true };
+    Mongo.ops.updateOne('courses', query, json, function(err, result) {
+        if(err) {
+            log('suspend course error = ', err);
+            res.status(400).send('');
+        } else {
+            log('suspend course result = ', result);
+            res.status(201).send(joinToken);
+        }
+    });
 });
 
+// create a course
 app.post('/course', function(req, res) {
-    if(req.body && req.body.a && req.body.d) {
-        var auth         = req.body.a;
-        var course       = req.body.d;
-        course.userid    = auth.userid;
-        course.creation  = moment().format('x');
-        course.joinToken = generateJoinToken(COURSE_JOIN_TOKEN_LENGTH);
+    var course       = req.body;
+    course.userid    = getUserId(req);
+    course.creation  = moment().format('x');
+    course.joinToken = generateJoinToken(COURSE_JOIN_TOKEN_LENGTH);
 
-        log('received create-course request');
-        log('auth = ', auth);
-        log('course = ', course);
+    log('received create-course request');
+    log('course = ', course);
 
-        Mongo.ops.insert('courses', course);
-        res.status(201).send(course);
-    } else {
-        res.status(400).send('');
-    }
+    Mongo.ops.insert('courses', course);
+    res.status(201).send(course);
 });
 
+// get tasks from course
 app.get('/course/tasks', function(req, res) {
     if(req.query && req.query.cid) {
-        log('cid = ' + req.body.cid);
+        log('cid = ' + req.query.cid);
         res.status(200).send('got cid ok');
-    }
-});
-
-app.post('/create/programmingtask', function(req, res) {
-    if(req.body && req.body.a && req.body.d) {
-        var auth = req.body.a;
-        var task = req.body.d;
-        
-        log('task = ', task);
-        
-        Mongo.ops.insert('tasks', task);
-        res.status(201).send(task);
     } else {
-        res.status(400).send('');
+        res.status(400).send('bad request');
     }
 });
 
+// create a course programming task
+app.post('/create/programmingtask', function(req, res) {
+    var task = req.body;
+    log('task = ', task);
+    Mongo.ops.insert('tasks', task);
+    res.status(201).send(task);
+});
+
+// secure web server
 https.createServer(credentials, app).listen(443);
 
 // only redirect the home page. 403 forbid all others

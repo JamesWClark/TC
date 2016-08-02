@@ -76,11 +76,6 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
             $scope.user.domain      = googleUser.getHostedDomain();
             $scope.user.idToken     = authResponse.id_token;
             $scope.user.expiresAt   = authResponse.expires_at;
-            $scope.user.httpconfig  = {
-                headers : {
-                    'Authorization' : authResponse.id_token
-                }
-            };
             $scope.$digest();
             
             log('authResponse = ', authResponse);
@@ -276,11 +271,11 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     });
         
     // generic http post
-    var _post = function(u, d, callback) {
+    var _post = function(url, data, callback) {
         $http({
-            url : u,
+            url : url,
             method : 'POST',
-            data : d,
+            data : data,
             headers : {
                 'Authorization' : $scope.user.idToken
             }
@@ -298,8 +293,9 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     
     var _get = function(url, callback) {
         var config = $scope.user.httpconfig;
-        $http.get({
+        $http({
             url : url,
+            method : 'GET',
             headers : {
                 'Authorization' : $scope.user.idToken
             }
