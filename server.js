@@ -173,92 +173,67 @@ var errorHandler = function(err, req, res, next) {
 
 app.use(errorHandler);
 
-// middleware: authorize every request - requires params: `userid` and `idToken`
+// middleware: authorize every request by validating an idToken issued by google
 var authorizeRequest = function(req, res, next) {
-    log('authorize req.url = ', req.url);
+    log('authorizing request from url = ', req.url);
     if(req.body) {
-        log('ok: authorizeRequest has body and query params');
-        
-        log('headers = ', req.headers);
-
         var idToken = req.headers.authorization;
-        log('idtoken from headers = ' + idToken);
-        // validate the token with Google
-        log("ok: let's check with Google: https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=" + idToken);
-        request('https://www.googleapis.com/oauth2/v3/tokeninfo?id_token=' + idToken, function(err, res, body) {
+        var decodedToken = jwt.decode(idToken, { complete : true });  // ex: http://www.jsonmate.com/permalink/57a0372c4fef248c399c5dd6        
+        var keyID = decodedToken.header.kid;
+        var algorithm = decodedToken.header.alg;
+
+        // request google well known config for verifying the JWK or PEM, see:
+        // http://ncona.com/2015/02/consuming-a-google-id-token-from-a-server/
+        // should only make this request once every 24 hours?
+        request('https://accounts.google.com/.well-known/openid-configuration', function(err, res, body) {
             if(err) {
-                log('error while validating a user id_token with Google = ', err);
-                next(err);
-            } else if (res.statusCode === 200) {
-                var reply = JSON.parse(body);
-                log('ok: Googles reply = ', reply);
-
-                var iss = reply.iss;
-                var aud = reply.aud;
-                var kid = reply.kid;
-                var alg = reply.alg;
-                
-                // links
-                // https://www.googleapis.com/oauth2/v3/certs
-                // https://www.googleapis.com/oauth2/v1/certs
-                // https://accounts.google.com/.well-known/openid-configuration
-                // http://ncona.com/2015/02/consuming-a-google-id-token-from-a-server/
-                // https://github.com/Brightspace/node-jwk-to-pem
-                // https://github.com/brianloveswords/node-jws
-                
-                //Once you get these claims, you still need to check that the aud claim contains one of your app's client IDs.
-                //If it does, then the token is both valid and intended for your client, and you can safely retrieve and use 
-                //the user's unique Google ID from the sub claim.
-                //https://developers.google.com/identity/sign-in/web/backend-auth#calling-the-tokeninfo-endpoint
-
-                // TODO: verify the following
-                // -The ID token is properly signed by Google. Use Google's public keys (available in JWK or PEM format) to verify the token's signature.
-                // -If your authentication request specified a hosted domain, the ID token has a hd claim that matches your Google Apps hosted domain.
-                
-                // for verifying the JWK or PEM, see:
-                // http://ncona.com/2015/02/consuming-a-google-id-token-from-a-server/
-                request('https://accounts.google.com/.well-known/openid-configuration', function(err, res, body) {
-                    if(err) {
-                        log('google openid.jwks err = ', err);
-                    } else {
-                        
-                        // try catch something here - all kinds of bad data could pass through here
-                        // use express error middleware?
-                        var jwks = JSON.parse(body);
-                        var jwks_uri = jwks.jwks_uri;
-                        request(jwks_uri, function(err, res, body) {
-                            var keys = JSON.parse(body).keys;
-                            var jwk = keys.filter(function(key) {
-                                return key.kid === kid;
-                            })[0];
-                            var pem = jwkToPem(jwk);
-                            var verify = jws.verify(idToken, alg, pem);
-                            log('keys = ', keys);
-                            log('jwk = ', jwk);
-                            log('pem = ', pem);
-                            log('valid = ', jwt.verify(idToken, pem)); // do i need this?
-                            log('verify = ', verify);
-                            
-                        });
-                    }
-                });
-                        
-                log('iss = ', iss);
-                log('aud = ', aud);
-
-                if((iss === 'accounts.google.com' || iss === 'https://accounts.google.com') && aud === CLIENT_ID) {
-                    log('ok: you may proceed');
-                    next();                    
-                } else {
-                    log('fail: failed Google token validation');
-                    next({ 'status' : 401, 'msg' : 'failed Google token validation' });
-                }
+                log('fail: could not connect to google well-known configuration = ', err);
+                next({ 'status' : 401, 'msg' : 'could not connect to google well-known configuration' });
             } else {
-                next('#!@#$'); // not sure WTF
+                // try catch something here - all kinds of bad data could pass through here
+                // use express error middleware?
+                var wellknownconfig = JSON.parse(body);
+                var jsonwebkeys_uri = wellknownconfig.jwks_uri; // ex: https://www.googleapis.com/oauth2/v3/certs
+                
+                request(jsonwebkeys_uri, function(err, res, body) {
+            
+                    // get the public keys array
+                    var keysarray = JSON.parse(body).keys;
+            
+                    // get only the key that matches the keyID from the original idToken above
+                    var jwk = keysarray.filter(function(key) {
+                        return key.kid === keyID;
+                    })[0];
+                    
+                    // convert this key to PEM format
+                    var pem = jwkToPem(jwk);
+                    
+                    // verify the authenticity of the idToken
+                    // what about expiration date set by Google?
+                    // maybe i just need to timestamp the first appearance on my end?
+                    jwt.verify(idToken, pem, { audience : CLIENT_ID, issuer : 'accounts.google.com', algorithms : [ algorithm ] }, function(err, decoded) {
+                        if(err) {
+                            log('fail: idToken validation error = ', err);
+                            next({ 'status' : 401, 'msg' : 'failed Google id_token validation' });
+                        } else {
+                            log('decoded idToken = ', decoded);
+                            log('authorized = ', authorized);
+
+                            var authorized = jws.verify(idToken, algorithm, pem); // true or false
+                            if(authorized) {
+                                log('ok: idToken authorized');
+                                next();
+                            } else {
+                                log('fail: Google id_token validation');
+                                next({ 'status' : 401, 'msg' : 'failed Google id_token validation' });
+                            }
+                        }
+                    });
+                });
             }
         });
     } else {
-        log('fail: body or query params are missing');
+        log('fail: body missing');
         next({ 'status' : 401, 'msg' : 'not authorized' });
     }
 };
