@@ -91,9 +91,9 @@ Mongo.connect(mongo_url, function(err, db) {
             var col = db.collection(collection);
             col.findOne(json, function(err, doc) {
                 if(err) {
-                    log('error = ' + err);
+                    log('Mongo.ops.findOne.error = ', err);
                 } else {
-                    log('findOne = ', doc);
+                    log('Mongo.ops.findOne = ', doc);
                     if(callback) callback(err, doc);
                 }
             });
@@ -103,9 +103,9 @@ Mongo.connect(mongo_url, function(err, db) {
             var col = db.collection(collection);
             col.find(json).toArray(function(err, docs) {
                 if(err) {
-                    log('error = ', err);
+                    log('Mongo.ops.find.error = ', err);
                 } else {
-                    log('find ' + docs.length + ' = ', docs);
+                    log('Mongo.ops.find = ' + docs.length + ' = ', docs);
                 }
                 if (callback) callback(docs);
             });
@@ -115,9 +115,9 @@ Mongo.connect(mongo_url, function(err, db) {
             var col = db.collection(collection);
             col.insert(json, function(err, result) {
                 if(err) {
-                    log('error = ', err);
+                    log('Mongo.ops.insert.error = ', err);
                 } else {
-                    log('insert ' + collection + ' = ', json);
+                    log('Mongo.ops.insert = ' + collection + ' = ', json);
                 }
                 if (callback) callback(err, result);
             });
@@ -130,9 +130,9 @@ Mongo.connect(mongo_url, function(err, db) {
                 , { upsert : true }
                 , function (err, result) {
                     if(err) {
-                        log('error = ', err);
+                        log('Mongo.ops.upsert.error = ', err);
                     } else {
-                        log('upsert ' + collection + ' = ', result);
+                        log('Mongo.ops.upsert = ' + collection + ' = ', result);
                     }
                 }
             );
@@ -146,7 +146,7 @@ Mongo.connect(mongo_url, function(err, db) {
                     if(err) {
                         log('error = ', err);
                     } else {
-                        log('update ' + collection + ' = ', result);
+                        log('Mongo.ops.updateOne = ' + collection + ' = ', result);
                         
                     }
                     if(callback) callback(err, result);
@@ -294,14 +294,17 @@ app.post('/signin', function(req, res) {
 
 // join a course
 app.post('/join/course', function(req, res) {
-    var token = req.body;
+    var token = req.body.joinToken;
     var userid = getUserId(req);
-    log('attempting to join course with token = ', token);
+    log('attempting to join course with token = ' + token + ' for userid = ' + userid);
 
     // first, does the course even exist?
     Mongo.ops.findOne('courses', { 'joinToken' : token }, function(err, course) {
         if (err) {
             log('error from ' + req.url + ' = ',  err);
+            // this may be naive - shouldn't I be conditioined on the err itself for various cases, not simply found or not found?
+            res.status(404).send("Did not find one course with joinToken = " + token);
+            next(err);
         } else if (course) { // yes - course exists
             // wait, are you already in the course?
             Mongo.ops.findOne('studentsInCourses', { 'courseid' : course._id, 'userid' : userid }, function(err, doc) {
@@ -309,7 +312,7 @@ app.post('/join/course', function(req, res) {
                     log('error from ' + req.url + ' = ', err);
                 } else if (doc) {
                     log(userid + ', you\'re already in the course! GTFO');
-                    res.status(400).send("You're already in this course.");
+                    res.status(403).send("You're already in this course.");
                 } else {
                     // hmm, you might be able to join but do you own the course?
                     Mongo.ops.findOne('courses', { '_id' : course._id, 'userid' : userid }, function(err, doc) {
@@ -317,11 +320,11 @@ app.post('/join/course', function(req, res) {
                             log('error from ' + req.url + ' = ', err);
                         } else if (doc) {
                             log(userid + ' wait, you ARE the owner :S');
-                            res.status(400).send("You can't join your own course");
+                            res.status(403).send("You can't join your own course");
                         } else {
                             log('ok: you may join the course = ', course);
                             var studentInCourse = {
-                                'userid' : req.body.a.userid,
+                                'userid' : userid,
                                 'courseid' : course._id
                             };
                             Mongo.ops.insert('studentsInCourses', studentInCourse, function(err, doc) {

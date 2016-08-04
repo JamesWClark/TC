@@ -144,7 +144,7 @@
         <span class="w3-text-red" ng-show="formJoinCourse.courseCode.$dirty && formJoinCourse.courseCode.$invalid">
           <span ng-show="formJoinCourse.courseCode.$error.required">Required</span>
         </span>
-        <input name="courseCode" class="w3-input" type="text" placeholder="Enter Course Code" ng-model="joinToken" required>
+        <input id="courseCode" name="courseCode" class="w3-input" type="text" placeholder="Enter Course Code" ng-model="joinToken" required>
       </div>
       <div class="w3-container w3-padding-top w3-padding-bottom">
         <button class="w3-btn w3-green" ng-disabled="formJoinCourse.courseCode.$invalid" ng-click="joinCourse(joinToken)">Join</button>

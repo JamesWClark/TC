@@ -36,7 +36,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
                     }
                     simpleObject[prop] = obj[prop];
                 }
-                console.log('c-' + msg + JSON.stringify(simpleObject)); // returns cleaned up JSON
+                console.log('cleaned-by-logger-' + msg + JSON.stringify(simpleObject)); // returns cleaned up JSON
             }        
         } else {
             console.log(msg);
@@ -123,6 +123,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
             case 'join-course':
                 log('get modal-join-course');
                 angular.element('#modal-join-course').show();
+                angular.element('#courseCode').focus();
                 break;
             case 'create-web-snippet':
                 log('get modal-create-web-snippet')
@@ -178,10 +179,15 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     $scope.joinCourse = function(token) {
         log('trying to join course with token = ' + token);
         var url = '/join/course';
-        _post(url, token, function(response) {
+        var json = { 'joinToken' : token };
+        _post(url, json, function(response) {
             switch(response.status) {
                 case 400:
                     log('fail: ', response.data);
+                    $scope.joinError = response.data;
+                    break;
+                case 403:
+                    log('403: /join/course = ', response.data);
                     $scope.joinError = response.data;
                     break;
                 case 404: // join token not found
@@ -193,6 +199,10 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
                     $scope.user.courses.push(response.data);
                     angular.element('#modal-join-course').hide();
                     $scope.formJoinCourse.$setPristine();
+                    break;
+                default:
+                    log('joinCourse defaulted - could not complete request');
+                    $scope.joinError = 'Attempt to join defaulted. Could not join.';
                     break;
             }
         });
