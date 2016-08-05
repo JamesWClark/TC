@@ -279,15 +279,32 @@ app.post('/signin', function(req, res) {
 
         Mongo.ops.insert('logins', login);
         Mongo.ops.upsert('users', { 'userid' : user.userid }, user);
-        Mongo.ops.find('courses', { 'userid' : user.userid }, function(docs) {
-            var opts = {
-                superadmin : superadmins.indexOf(user.email) === -1 ? false : true
-            };
-            var data = {
-                courses: docs,
-                options: opts
-            };
-            res.status(201).send(data); // i could sign my own auth tokens and send them in the authorization header instead
+        
+        // get courses this user joined as a student
+        Mongo.ops.find('studentsInCourses', { 'userid' : user.userid }, function(docs) {
+            log('this user has studentsInCourses = ', docs);
+            var a = [];
+            docs.forEach(function(ele) {
+                a.push({ '_id' : ele.courseid });
+            });
+            a. push({ 'userid' : user.userid });
+            log('built an array a = ', a);
+            
+            // get courses owned by this user
+            Mongo.ops.find('courses', { $or : a }, function(docs) {
+                var opts = {
+                    superadmin : superadmins.indexOf(user.email) === -1 ? false : true
+                };
+                var data = {
+                    courses: docs,
+                    options: opts
+                };
+
+
+
+
+                res.status(201).send(data); // i could sign my own auth tokens and send them in the authorization header instead
+            });
         });
     }
 });
