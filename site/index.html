@@ -87,8 +87,10 @@
   <div id="view-list-courses" ng-if="view === 'list-courses'" class="flex wrap">
     <div class="course-card w3-margin w3-padding-jumbo w3-center w3-amber w3-bottombar w3-border-orange" ng-show="c.suspend === undefined" ng-repeat="c in user.courses" ng-click="viewCourse(c)">
       {{ c.title }}
-      <br><br>
+      <br>
       {{ c.joinToken }}
+      <br>
+      <div ng-if="c.userid === user.userid">owner</div>
     </div>
     <div class="course-card border-dotted w3-margin w3-padding-jumbo w3-center w3-light-grey" ng-click="getModal('join-course')">+<br>Join<br>Course</div>
     <div class="course-card border-dotted w3-margin w3-padding-jumbo w3-center w3-light-grey " ng-if="user.superadmin == true" ng-click="getModal('create-course')">+<br>Create Course</div>
