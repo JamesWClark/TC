@@ -244,13 +244,20 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         task.courseid = $scope.course._id;
         log('create programming task = ', task);
         _post('/create/programmingtask', task, function(response) {
-            angular.element('#modal-create-programming-task').hide();
-            $scope.formCreateProgrammingTask.$setPristine();
-            $scope.newProgrammingTask = {};
-            tinymce.get('tinymce-create-programming-task').setContent('');
-            editor.setValue('');
-            $scope.mpt_step(0);
-            log('created programming task = ', response.data);
+            switch(response.status) {
+                case 201:
+                    angular.element('#modal-create-programming-task').hide();
+                    $scope.formCreateProgrammingTask.$setPristine();
+                    $scope.newProgrammingTask = {};
+                    tinymce.get('tinymce-create-programming-task').setContent('');
+                    editor.setValue('');
+                    $scope.mpt_step(0);
+                    log('created programming task = ', response.data);
+                    break;
+                case 403:
+                    $scope.createError = response.data;
+                    break;
+            }
         });
     };
     

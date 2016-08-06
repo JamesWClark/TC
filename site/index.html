@@ -65,7 +65,7 @@
     
     
     <!-- green add content buttons -->
-    <div id="add-content" ng-if="user.superadmin === true">
+    <div id="add-content" ng-if="course.userid === user.userid">
       <div id="add-content-buttons-container">
         <div class="flex middle add-content-button" ng-click="getModal('create-web-snippet')">
           <div class="x3 right margin-right-8">Web Snippet</div>
