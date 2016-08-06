@@ -15,6 +15,7 @@ var jwt        = require('jsonwebtoken');
 var http       = require('http');
 var https      = require('https');
 var Mongo      = require('mongodb').MongoClient;
+var ObjectId   = require('mongodb').ObjectID;
 var helmet     = require('helmet');
 var moment     = require('moment');
 var express    = require('express');
@@ -35,6 +36,7 @@ var superadmins = ['jwclark@rockhursths.edu','this.clark@gmail.com'];
 var domains = ['rockhursths.edu','amdg.rockhursths.edu'];
 var tokenSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
+// logger that prevents circular object reference in javascript
 var log = function(msg, obj) {
     console.log('\n');
     if(obj) {
@@ -407,9 +409,27 @@ app.get('/course/tasks', function(req, res) {
 // create a course programming task
 app.post('/create/programmingtask', function(req, res) {
     var task = req.body;
-    log('task = ', task);
-    Mongo.ops.insert('tasks', task);
-    res.status(201).send(task);
+    var userid = getUserId(req);
+    log('/create/programmingtask task = ', task);
+    log('/create/programmingtask requested by userid = ', userid);
+    // you must own the course
+    Mongo.ops.findOne('courses', { '_id' : new ObjectId(task.courseid) }, function(err, doc) {
+        log('creating programming task, must verify doc = ', doc);
+        if(err) {
+            log('find err = ', err);
+        } else {
+            if(doc.length === 0) {
+                res.status(404).send('Course not found.');
+            } else {
+                if(doc.userid === userid) {
+                    Mongo.ops.insert('tasks', task);
+                    res.status(201).send(task);
+                } else {
+                    res.status(403).send('Only the owner of the course can add a new programming task.');
+                }
+            }            
+        }
+    });
 });
 
 // secure web server
