@@ -172,7 +172,8 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         
         var url = '/course/tasks?cid=' + course._id;
         _get(url, function(response) {
-            log('get tasks = ', response);
+            course.tasks = response.data;
+            log('course has tasks = ', course.tasks);
         });
     };
     

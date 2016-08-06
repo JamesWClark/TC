@@ -302,9 +302,6 @@ app.post('/signin', function(req, res) {
                     options: opts
                 };
 
-
-
-
                 res.status(201).send(data); // i could sign my own auth tokens and send them in the authorization header instead
             });
         });
@@ -399,8 +396,12 @@ app.post('/course', function(req, res) {
 // get tasks from course
 app.get('/course/tasks', function(req, res) {
     if(req.query && req.query.cid) {
-        log('cid = ' + req.query.cid);
-        res.status(200).send('got cid ok');
+        var courseid = req.query.cid;
+        log('get tasks for courseid = ' + courseid);
+        Mongo.ops.find('tasks', { 'courseid' : courseid }, function(docs) {
+            log("/course/tasks get tasks = ", docs);
+            res.status(200).send(docs);
+        });
     } else {
         res.status(400).send('bad request');
     }
