@@ -56,7 +56,7 @@ var log = function(msg, obj) {
                 }
                 simpleObject[prop] = obj[prop];
             }
-            console.log('c-' + msg + JSON.stringify(simpleObject)); // returns cleaned up JSON
+            console.log('circular-' + msg + JSON.stringify(simpleObject)); // returns cleaned up JSON
         }        
     } else {
         console.log(msg);
@@ -223,7 +223,7 @@ var authorizeRequest = function(req, res, next) {
                     var pem = jwkToPem(jwk);
                     
                     // verify the authenticity of the idToken
-                    // what about expiration date set by Google?
+                    // what about expiration date set by Google? idk but this verifier caught the expiration date...
                     // maybe i just need to timestamp the first appearance on my end?
                     jwt.verify(idToken, pem, { audience : CLIENT_ID, issuer : 'accounts.google.com', algorithms : [ algorithm ] }, function(err, decoded) {
                         if(err) {
@@ -438,7 +438,9 @@ https.createServer(credentials, app).listen(443);
 
 // only redirect the home page. 403 forbid all others
 http.createServer(function(req, res) {
-    log('catch a redirect (is HSTS working?)');
+    log('catch a redirect from ' + req.headers.host + ' (is HSTS working?)');
+    log('redirect req = ', req);
+    log('redirect res = ', res);
     if (req.headers.host + req.url === DOMAIN + '/') {
         res.writeHead(301, { 'Location' : 'https://' + req.headers.host + req.url });
         res.end();

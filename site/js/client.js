@@ -254,6 +254,10 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
                     editor.setValue('');
                     $scope.mpt_step(0);
                     log('created programming task = ', response.data);
+                    if(!$scope.course.tasks) {
+                        $scope.course.tasks = [];
+                    }
+                    $scope.course.tasks.push(task);
                     break;
                 case 403:
                     $scope.createError = response.data;
@@ -358,4 +362,10 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
 
     // unhide the first tab on modal-create-programming-task
     $scope.mpt_step(0);
+});
+
+app.directive('tcProgrammingTask', function() {
+    return {
+        templateUrl : 'parts/programming-task.html'
+    }
 });
