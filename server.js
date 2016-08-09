@@ -364,7 +364,7 @@ app.post('/join/course', function(req, res) {
 
 // suspend a course
 app.post('/suspend/course', function(req, res) {
-    var joinToken = req.body;
+    var joinToken = req.body.joinToken;
     log('suspend course with token = ', joinToken);
     var query = { 'joinToken' : joinToken };
     var json = { 'suspend' : true };

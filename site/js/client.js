@@ -4,7 +4,7 @@
 
 var app = angular.module('tc',[]);
 
-app.controller('tcc', function($scope, $window, $http, $compile, $document) {
+app.controller('tcc', function($scope, $window, $http, $compile, $document, $sce) {
 
     var auth2;
     var sidenav = false; // displays the sidenav
@@ -172,7 +172,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         
         var url = '/course/tasks?cid=' + course._id;
         _get(url, function(response) {
-            course.tasks = response.data;
+            course.tasks = $sce.trustAsHtml(response.data);
             log('course has tasks = ', course.tasks);
         });
     };
@@ -211,8 +211,9 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     
     $scope.suspendCourse = function(token) {
         log('suspending course with token = ' + token);
+        var json = { 'joinToken' : token };
         var url = '/suspend/course';
-        _post(url, token, function(response) {
+        _post(url, json, function(response) {
             log('suspendCourse status = ', response.status);
             switch(response.status) {
                 case 201: // successfully suspended the course
