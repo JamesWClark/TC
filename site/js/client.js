@@ -2,7 +2,7 @@
 // http://stackoverflow.com/a/13016081/1161948
 // https://developers.google.com/identity/sign-in/web/backend-auth#send-the-id-token-to-your-server
 
-var app = angular.module('tc',[]);
+var app = angular.module('tc', ['ngSanitize']);
 
 app.controller('tcc', function($scope, $window, $http, $compile, $document) {
 
