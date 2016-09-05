@@ -142,3 +142,11 @@ input:invalid {
 .active {
   background-color: #4CAF50;
 }
+#course-task-feed {
+  margin: 0 auto 0 auto;
+  max-width: 940px;
+}
+
+.course-task {
+  margin-top: 14px;
+}

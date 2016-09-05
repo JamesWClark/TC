@@ -59,10 +59,9 @@
     <div class="w3-container w3-amber w3-center"><h1>{{ course.title }} &middot; {{ course.joinToken }}</h1></div>
     
     <!-- ng-repeat course tasks -->
-    <div ng-repeat="t in course.tasks">
+    <div id="course-task-feed" ng-repeat="t in course.tasks">
       <tc-programming-task></tc-programming-task>
     </div>
-    
     
     <!-- green add content buttons -->
     <div id="add-content" ng-if="course.userid === user.userid">

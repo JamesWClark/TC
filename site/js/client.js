@@ -4,7 +4,7 @@
 
 var app = angular.module('tc',[]);
 
-app.controller('tcc', function($scope, $window, $http, $compile, $document, $sce) {
+app.controller('tcc', function($scope, $window, $http, $compile, $document) {
 
     var auth2;
     var sidenav = false; // displays the sidenav
@@ -16,7 +16,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document, $sce
     editor.$blockScrolling = Infinity;
     $scope.user = {};
     
-    // log to prevent circular reference
+    // logger that prints json objects and prevents circular reference
     var log = function(msg, obj) {
         console.log('\n');
         if(obj) {
@@ -43,11 +43,13 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document, $sce
         }
     };
     
+    // external, called by google auth script callback
     $window.appStart = function() {
         log('appStart()');
         gapi.load('auth2', initSigninV2);
     };
 
+    // google api
     var initSigninV2 = function() {
         log('initSigninV2()');
         auth2 = gapi.auth2.getAuthInstance();
@@ -59,6 +61,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document, $sce
         }
     };
 
+    // google api
     var signinChanged = function(isSignedIn) {
         log('signinChanged() = ' + isSignedIn);
         
@@ -172,7 +175,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document, $sce
         
         var url = '/course/tasks?cid=' + course._id;
         _get(url, function(response) {
-            course.tasks = $sce.trustAsHtml(response.data);
+            course.tasks = response.data;
             log('course has tasks = ', course.tasks);
         });
     };
@@ -203,7 +206,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document, $sce
                     break;
                 default:
                     log('joinCourse defaulted - could not complete request');
-                    $scope.joinError = 'Attempt to join defaulted. Could not join.';
+                    $scope.joinError = 'Attempt to join defaulted. Could not join because response.status = ' + response.status;
                     break;
             }
         });
