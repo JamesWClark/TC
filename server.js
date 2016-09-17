@@ -194,7 +194,7 @@ var errorHandler = function(err, req, res, next) {
 
 app.use(errorHandler);
 
-// maintains a cache of googles public keys, twice a day
+// maintains a cache of google public keys, twice a day
 var update24HourKeyCycle = function() {
     log('update24HourKeyCycle()');
     // request google well known config for verifying the JWK or PEM, see:

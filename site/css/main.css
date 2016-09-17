@@ -149,4 +149,9 @@ input:invalid {
 
 .course-task {
   margin-top: 14px;
+  cursor: pointer;
+}
+
+.course-task:hover * {
+  opacity: 0.6;
 }

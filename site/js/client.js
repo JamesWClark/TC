@@ -6,8 +6,8 @@ var app = angular.module('tc', ['ngSanitize']);
 
 app.controller('tcc', function($scope, $window, $http, $compile, $document) {
 
-    var auth2;
-    var sidenav = false; // displays the sidenav
+    var auth2;              // the google signin object
+    var sidenav = false;    // displays the sidenav
     
     // set ace editor in modal-create-programming-task
     var editor = ace.edit("editor");
@@ -49,7 +49,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         gapi.load('auth2', initSigninV2);
     };
 
-    // google api
+    // init step of google signin
     var initSigninV2 = function() {
         log('initSigninV2()');
         auth2 = gapi.auth2.getAuthInstance();
@@ -61,7 +61,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         }
     };
 
-    // google api
+    // after successful init step of google signin
     var signinChanged = function(isSignedIn) {
         log('signinChanged() = ' + isSignedIn);
         
@@ -101,22 +101,26 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         }
     };
 
+    // the signed in user has changed
     var userChanged = function(user) {
         log('userChanged() = ' + JSON.stringify(user));
     };
     
+    // signout, but don't disconnect auth
     $scope.signOut = function() {
         auth2.signOut();
         log('signOut()');
         log(auth2);
     };
     
+    // disconnect google auth from user
     $scope.disconnect = function() {
         auth2.disconnect();
         log('disconnect()');
         log(auth2);
     };
     
+    // get a modal for this course
     $scope.getModal = function(id) {
         switch(id) {
             case 'create-course':
@@ -139,23 +143,28 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         }
     };
     
+    // lists courses (home view)
     var home = function() {    
         $scope.view = 'list-courses';
         delete $scope.course;
     };
     
+    // show view: home
     $scope.home = function() {
         home();
     };
     
+    // generic hide element
     $scope.hide = function(ele) {
         angular.element(ele).hide();
     };
     
+    // generic show element
     $scope.show = function(ele) {
         angular.element(ele).show();
     };
     
+    // create a new course
     $scope.createCourse = function() {
         log('create course = ', $scope.newCourse);
         _post('/course', $scope.newCourse, function(response) {
@@ -168,6 +177,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         });
     };
     
+    // view the clicked on course
     $scope.viewCourse = function(course) {
         log('view course = ', course);
 		$scope.course = course;
@@ -180,6 +190,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         });
     };
     
+    // joins the course with token =
     $scope.joinCourse = function(token) {
         log('trying to join course with token = ' + token);
         var url = '/join/course';
@@ -212,6 +223,8 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         });
     };
     
+    // suspends this course
+    // TODO: provide undo option
     $scope.suspendCourse = function(token) {
         log('suspending course with token = ' + token);
         var json = { 'joinToken' : token };
@@ -237,11 +250,13 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         });
     };
     
+    // TODO: create a new web snippet for this course
     $scope.createWebSnippit = function() {
         log('creating web snippet');
         log(tinymce.activeEditor.getContent()); //#tinymce-create-web-snippet
     };
     
+    // creates a new programming task for this course
     $scope.createProgrammingTask = function() {
         var task = $scope.newProgrammingTask;
         task.instructions = tinymce.get('tinymce-create-programming-task').getContent();
@@ -270,6 +285,10 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         });
     };
     
+    $scope.doProgrammingTask = function(id) {
+        log('doProgrammingTask id = ', id);
+    };
+    
     // manage tabs for modal-create-programming-task
     $scope.mpt_step = function(n) {
         var numTabs = 2;
@@ -296,7 +315,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         }
     });
         
-    // generic http post
+    // generic http post with callback
     var _post = function(url, data, callback) {
         $http({
             url : url,
@@ -317,6 +336,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         );
     };
     
+    // generic http get with callback
     var _get = function(url, callback) {
         var config = $scope.user.httpconfig;
         $http({
@@ -337,7 +357,10 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         );
     };
     
+    // apply jquery datepicker
     angular.element('.datepicker').datepicker();
+    
+    // undo auto complete on all input
     angular.element('input').attr('autocomplete','off');
     
     // initialize tinymce - web snippet
