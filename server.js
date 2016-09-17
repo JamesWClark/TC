@@ -36,6 +36,13 @@ var superadmins = ['jwclark@rockhursths.edu','this.clark@gmail.com'];
 var domains = ['rockhursths.edu','amdg.rockhursths.edu'];
 var tokenSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
+// cache the public keys from google endpoint: https://www.googleapis.com/oauth2/v3/certs
+var googlePublicKeyCycle = {
+    keys : [],
+    ttl : 12, // time to live, hours
+    timestamp : null
+};
+
 // logger that prevents circular object reference in javascript
 var log = function(msg, obj) {
     console.log('\n');
@@ -187,6 +194,33 @@ var errorHandler = function(err, req, res, next) {
 
 app.use(errorHandler);
 
+// maintains a cache of googles public keys, twice a day
+var update24HourKeyCycle = function() {
+    log('update24HourKeyCycle()');
+    // request google well known config for verifying the JWK or PEM, see:
+    // http://ncona.com/2015/02/consuming-a-google-id-token-from-a-server/
+    request('https://accounts.google.com/.well-known/openid-configuration', function(err, res, body) {
+        if(err) {
+            log('fail: could not connect to google well-known configuration = ', err);
+        } else {
+            var wellknownconfig = JSON.parse(body);
+            var jsonwebkeys_uri = wellknownconfig.jwks_uri; // ex: https://www.googleapis.com/oauth2/v3/certs
+            request(jsonwebkeys_uri, function(err, res, body) {
+                if(err) {
+                    log('update24HourKeyCycle() error');
+                } else {
+                    // get the public keys array
+                    var timestamp = moment();
+                    googlePublicKeyCycle.keys = JSON.parse(body).keys;
+                    googlePublicKeyCycle.ttl = timestamp.add(12, 'hours');
+                    googlePublicKeyCycle.timestamp = timestamp;
+                    log(timestamp.format('x') + ': cached google public keys ', googlePublicKeyCycle.keys);
+                }
+            });
+        }
+    });
+};
+        
 // middleware: authorize every request by validating an idToken issued by google
 var authorizeRequest = function(req, res, next) {
     log('authorizing request from url = ', req.url);
@@ -196,55 +230,45 @@ var authorizeRequest = function(req, res, next) {
         var keyID = decodedToken.header.kid;
         var algorithm = decodedToken.header.alg;
 
-        // request google well known config for verifying the JWK or PEM, see:
-        // http://ncona.com/2015/02/consuming-a-google-id-token-from-a-server/
-        // should only make this request once every 24 hours?
-        request('https://accounts.google.com/.well-known/openid-configuration', function(err, res, body) {
-            if(err) {
-                log('fail: could not connect to google well-known configuration = ', err);
-                next({ 'status' : 401, 'msg' : 'could not connect to google well-known configuration' });
-            } else {
-                // try catch something here - all kinds of bad data could pass through here
-                // use express error middleware?
-                var wellknownconfig = JSON.parse(body);
-                var jsonwebkeys_uri = wellknownconfig.jwks_uri; // ex: https://www.googleapis.com/oauth2/v3/certs
-                
-                request(jsonwebkeys_uri, function(err, res, body) {
-            
-                    // get the public keys array
-                    var keysarray = JSON.parse(body).keys;
-            
-                    // get only the key that matches the keyID from the original idToken above
-                    var jwk = keysarray.filter(function(key) {
-                        return key.kid === keyID;
-                    })[0];
-                    
-                    // convert this key to PEM format
-                    var pem = jwkToPem(jwk);
-                    
-                    // verify the authenticity of the idToken
-                    // what about expiration date set by Google? idk but this verifier caught the expiration date...
-                    // maybe i just need to timestamp the first appearance on my end?
-                    jwt.verify(idToken, pem, { audience : CLIENT_ID, issuer : 'accounts.google.com', algorithms : [ algorithm ] }, function(err, decoded) {
-                        if(err) {
-                            log('fail: idToken validation error = ', err);
-                            next({ 'status' : 401, 'msg' : 'failed Google id_token validation' });
-                        } else {
-                            var authorized = jws.verify(idToken, algorithm, pem); // true or false
-                            log('decoded idToken = ', decoded);
-                            log('authorized = ', authorized);
-                            if(authorized) {
-                                log('ok: idToken authorized');
-                                next();
-                            } else {
-                                log('fail: Google id_token validation');
-                                next({ 'status' : 401, 'msg' : 'failed Google id_token validation' });
-                            }
-                        }
-                    });
-                });
-            }
+        // get only the key that matches the keyID from the original idToken above
+        var jwk = googlePublicKeyCycle.keys.filter(function(key) {
+            return key.kid === keyID;
         });
+
+        // key length might be zero if google cycled their key rotation
+        if(jwk.length > 0) { // matching key found
+            jwk = jwk[0];
+
+            // convert this key to PEM format
+            var pem = jwkToPem(jwk);
+
+            // verify the authenticity of the idToken
+            // what about expiration date set by Google? idk but this verifier caught the expiration date...
+            // maybe i just need to timestamp the first appearance on my end?
+            jwt.verify(idToken, pem, { audience : CLIENT_ID, issuer : 'accounts.google.com', algorithms : [ algorithm ] }, function(err, decoded) {
+                if(err) {
+                    log('fail: idToken validation error = ', err);
+                    next({ 'status' : 401, 'msg' : 'failed Google id_token validation' });
+                } else {
+                    var authorized = jws.verify(idToken, algorithm, pem); // true or false
+                    log('decoded idToken = ', decoded);
+                    log('authorized = ', authorized);
+                    if(authorized) {
+                        log('ok: idToken authorized');
+                        next();
+                    } else {
+                        log('fail: Google id_token validation');
+                        next({ 'status' : 401, 'msg' : 'failed Google id_token validation' });
+                    }
+                }
+            });
+        } else { // matching key not found - try to update, one time only (server will fail after no update? log it...)
+            var now = moment();
+            if(now.isAfter(googlePublicKeyCycle.ttl)) {
+                update24HourKeyCycle()
+                authorizeRequest(req, res, next);                
+            }
+        }
     } else {
         log('fail: body missing');
         next({ 'status' : 401, 'msg' : 'not authorized' });
@@ -432,6 +456,9 @@ app.post('/create/programmingtask', function(req, res) {
         }
     });
 });
+
+// cache google public keys
+update24HourKeyCycle();
 
 // secure web server
 https.createServer(credentials, app).listen(443);
