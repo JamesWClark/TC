@@ -12,6 +12,10 @@ body > div {
   flex: 1;
 }
 
+hr {
+  border-top: solid 1px #999;
+}
+
 .margin-0 { margin: 0; }
 .padding-0 { padding: 0; }
 
@@ -154,4 +158,13 @@ input:invalid {
 
 .course-task:hover * {
   opacity: 0.6;
+}
+
+#programming-task-editor, #programming-task-sketch {
+  height: 500px;
+}
+
+#programming-task-sketch {
+  background-image: url('../img/background.jpg');
+  overflow: hidden;
 }

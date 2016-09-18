@@ -14,6 +14,7 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     editor.setTheme("ace/theme/sqlserver");
     editor.getSession().setMode("ace/mode/processing");
     editor.$blockScrolling = Infinity;
+    
     $scope.user = {};
     
     // logger that prints json objects and prevents circular reference
@@ -138,6 +139,11 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
                 break;
             case 'create-programming-task':
                 log('get modal-create-programming-task');
+                // set ace editor in modal-create-programming-task
+                editor = ace.edit("editor");
+                editor.setTheme("ace/theme/sqlserver");
+                editor.getSession().setMode("ace/mode/processing");
+                editor.$blockScrolling = Infinity;
                 angular.element('#modal-create-programming-task').show();
                 break;
             case 'do-programming-task':
@@ -291,8 +297,42 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
     
     $scope.doProgrammingTask = function(task) {
         log('doProgrammingTask = ', task);
+        
+        if(Processing.getInstanceById('sketch')) {
+            Processing.getInstanceById('sketch').exit();
+        }
+        
+        angular.element('#programming-task-sketch').html('');
+        
         $scope.course.do = task;
+        
+        editor = ace.edit("programming-task-editor");
+        editor.setTheme("ace/theme/sqlserver");
+        editor.setFontSize(14);
+        editor.getSession().setMode("ace/mode/processing");
+        editor.$blockScrolling = Infinity;
+        editor.setValue(task.starterCode, 1); // set code, move cursor to end
+        editor.focus();
+        
         $scope.getModal('do-programming-task');
+    };
+    
+    // update canvas and editor with new code
+    $scope.setNewSketch = function() {
+        var code = editor.getValue();
+        if(Processing.getInstanceById('sketch')) {
+            Processing.getInstanceById('sketch').exit();
+        }
+        var container = angular.element('#programming-task-sketch');
+        var canvas = document.createElement('canvas');
+        canvas.id = 'sketch';
+        container.html('');
+        container.append(canvas);
+        try {
+            new Processing(canvas, code);
+        } catch (err) {
+            $scope.sketchError = err;
+        }
     };
     
     // manage tabs for modal-create-programming-task

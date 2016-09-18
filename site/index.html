@@ -217,15 +217,31 @@
       <div class="w3-container w3-dark-grey">
         <span class="w3-closebtn" ng-click="hide('#modal-do-programming-task')">&times;</span>
         <h1>{{ course.do.title }}</h1>
-        <div ng-bind-html="course.do.instructions"></div>
+      </div>
+      <div class="w3-container w3-padding-top w3-padding-bottom">Instructions: <span ng-bind-html="course.do.instructions"></span></div>
+      <hr>
+      <div class="w3-container w3-padding-top w3-padding-bottom">
+        <div class="flex">
+          <div class="x1">
+            <div id="programming-task-editor" contenteditable="true" spellcheck="false"></div>
+          </div>
+          <div class="x1">
+            <div id="programming-task-sketch"></div>
+          </div>
+        </div>
       </div>
       <div class="w3-container w3-padding-top w3-padding-bottom">
-        {{ course.do.starterCode }}
-      </div>
-      <div class="w3-container w3-padding-top w3-padding-bottom">
-        <button class="w3-btn w3-green" ng-click="submitProgrammingTask()">Submit</button>
-        <button class="w3-btn w3-green" ng-click="hide('#modal-do-programming-task')">Cancel</button>
-        <span class="w3-text-red">{{ createError }}</span>
+        <div class="flex">
+          <div class="x1">
+            <button class="w3-btn w3-green" ng-click="submitProgrammingTask()">Submit</button>
+            <button class="w3-btn w3-green" ng-click="hide('#modal-do-programming-task')">Cancel</button>
+            <span class="w3-text-red">{{ createError }}</span>
+          </div>
+          <div class="x1">
+            <button class="w3-btn w3-green" ng-click="setNewSketch()">Run Code</button>
+            <span class="w3-text-red">{{ sketchError }}</span>
+          </div>
+        </div>
       </div>
       <div class="w3-container w3-dark-grey">&nbsp;</div>
     </div>
