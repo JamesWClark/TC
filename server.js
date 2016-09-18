@@ -434,6 +434,7 @@ app.get('/course/tasks', function(req, res) {
 // create a course programming task
 app.post('/create/programmingtask', function(req, res) {
     var task = req.body;
+    task.taskid = generateJoinToken(COURSE_JOIN_TOKEN_LENGTH);
     var userid = getUserId(req);
     log('/create/programmingtask task = ', task);
     log('/create/programmingtask requested by userid = ', userid);

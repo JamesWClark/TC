@@ -211,6 +211,26 @@
     </div>
   </div>
   
+  <!-- MODAL: DO PROGRAMMING TASK -->
+  <div id="modal-do-programming-task" class="w3-modal">
+    <div class="w3-modal-content w3-card-8" ng-form name="formDoProgrammingTask">
+      <div class="w3-container w3-dark-grey">
+        <span class="w3-closebtn" ng-click="hide('#modal-do-programming-task')">&times;</span>
+        <h1>{{ course.do.title }}</h1>
+        <div ng-bind-html="course.do.instructions"></div>
+      </div>
+      <div class="w3-container w3-padding-top w3-padding-bottom">
+        {{ course.do.starterCode }}
+      </div>
+      <div class="w3-container w3-padding-top w3-padding-bottom">
+        <button class="w3-btn w3-green" ng-click="submitProgrammingTask()">Submit</button>
+        <button class="w3-btn w3-green" ng-click="hide('#modal-do-programming-task')">Cancel</button>
+        <span class="w3-text-red">{{ createError }}</span>
+      </div>
+      <div class="w3-container w3-dark-grey">&nbsp;</div>
+    </div>
+  </div>
+  
   <!-- AUTH: GOOGLE LOGIN (KEEP IN DOM TO PREVENT SCRIPT ERRORS) -->
   <div id="login" class="flex center middle" ng-hide="user.userid">
     <div id="logo-container" class="x1 right">

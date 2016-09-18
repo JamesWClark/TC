@@ -140,6 +140,10 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
                 log('get modal-create-programming-task');
                 angular.element('#modal-create-programming-task').show();
                 break;
+            case 'do-programming-task':
+                log('get modal-do-programming-task');
+                angular.element('#modal-do-programming-task').show();
+                break;
         }
     };
     
@@ -285,8 +289,10 @@ app.controller('tcc', function($scope, $window, $http, $compile, $document) {
         });
     };
     
-    $scope.doProgrammingTask = function(id) {
-        log('doProgrammingTask id = ', id);
+    $scope.doProgrammingTask = function(task) {
+        log('doProgrammingTask = ', task);
+        $scope.course.do = task;
+        $scope.getModal('do-programming-task');
     };
     
     // manage tabs for modal-create-programming-task
