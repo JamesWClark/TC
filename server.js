@@ -462,7 +462,7 @@ app.post('/create/programmingtask', function(req, res) {
 update24HourKeyCycle();
 
 // secure web server
-https.createServer(credentials, app).listen(443);
+https.createServer(credentials, app).listen(3000);
 
 // only redirect the home page. 403 forbid all others
 http.createServer(function(req, res) {
@@ -476,6 +476,6 @@ http.createServer(function(req, res) {
         res.writeHead(403);
         res.end();
     }
-}).listen(80);
+}).listen(8080);
 
 log('ready to serve');
