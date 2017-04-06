@@ -26,8 +26,8 @@ var bodyParser = require('body-parser');
 var app = express();
 
 var credentials = {
-    key:  fs.readFileSync('bin/key.pem'),
-    cert: fs.readFileSync('bin/cert.pem')
+    key:  fs.readFileSync('bin/privkey.pem'),
+    cert: fs.readFileSync('bin/fullchain.pem')
 };
 
 var mongo_url = 'mongodb://localhost:27017/teachcode';
